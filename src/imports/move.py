@@ -1,4 +1,5 @@
 # Algoritmos de movimiento
+import math
 
 class SteeringOutput:
 	def __init__(self, linear, angular):
@@ -15,5 +16,10 @@ class Kinematic:
 	def update(self, steering, time):
 		self.position += self.velocity * time
 		self.orientation += self.rotation * time
+		if self.velocity.length() > 0:
+			self.orientation = math.degrees(self.new_orientation())
 		self.velocity += steering.linear * time
 		self.rotation += steering.angular * time
+
+	def new_orientation(self):
+		return math.atan2(-self.velocity.y, self.velocity.x)

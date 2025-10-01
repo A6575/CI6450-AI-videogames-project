@@ -15,11 +15,11 @@ class Kinematic:
 
 	def update(self, steering, time):
 		self.position += self.velocity * time
-		self.orientation += self.rotation * time
-		if self.velocity.length() > 0:
-			self.orientation = math.degrees(self.new_orientation())
+		self.orientation = self.new_orientation()
 		self.velocity += steering.linear * time
 		self.rotation += steering.angular * time
 
 	def new_orientation(self):
-		return math.atan2(-self.velocity.x, -self.velocity.y)
+		if self.velocity.length() > 0:
+			return math.degrees(math.atan2(-self.velocity.x, -self.velocity.y))
+		return self.orientation

@@ -22,4 +22,4 @@ class Kinematic:
 		self.rotation += steering.angular * time
 
 	def new_orientation(self):
-		return math.atan2(-self.velocity.y, self.velocity.x)
+		return math.atan2(-self.velocity.x, -self.velocity.y)

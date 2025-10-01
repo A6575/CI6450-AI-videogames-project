@@ -14,7 +14,7 @@ class GUI:
 
 		# Escalar la imagen
 		sprite_grande = pygame.transform.scale(character.sprite, nuevo_tamano)
-		rotated_sprite = pygame.transform.rotate(sprite_grande, -character.kinematic.orientation)
+		rotated_sprite = pygame.transform.rotate(sprite_grande, character.kinematic.orientation)
 		rect = rotated_sprite.get_rect(center=(character.kinematic.position.x, character.kinematic.position.y))
 		self.screen.blit(rotated_sprite, rect)
 	

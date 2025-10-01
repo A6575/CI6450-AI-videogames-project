@@ -9,10 +9,9 @@ class GUI:
 		self.clock = pygame.time.Clock()
 	
 	def display_character(self, character):
-		# Nuevo tamaño (ancho, alto)
-		nuevo_tamano = (30, 42)  # Por ejemplo, 30x52 píxeles
-
-		# Escalar la imagen
+		# Nuevo tamaño de png (ancho, alto)
+		nuevo_tamano = (30, 42)
+		# Escalar png y rotar segun orientacion
 		sprite_grande = pygame.transform.scale(character.sprite, nuevo_tamano)
 		rotated_sprite = pygame.transform.rotate(sprite_grande, character.kinematic.orientation)
 		rect = rotated_sprite.get_rect(center=(character.kinematic.position.x, character.kinematic.position.y))
@@ -31,7 +30,7 @@ class GUI:
 				if event.type == pygame.QUIT:
 					running = False
 
-			self.screen.fill((112, 112, 112))  # Fondo gris
+			self.screen.fill((112, 112, 112))
 			self.display_character(player)
 			linear = pygame.math.Vector2(0, 0)
 			self.update_character(player, linear, dt)

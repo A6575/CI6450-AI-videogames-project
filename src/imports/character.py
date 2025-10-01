@@ -32,6 +32,6 @@ class Character:
 			if keys[K_DOWN]:
 				linear.y += 1
 			if linear.length() > 0:
-				linear = linear.normalize() * 100  # velocidad es un valor como 100
+				linear = linear.normalize() * 100 
 			steering = SteeringOutput(linear, 0)
 			self.kinematic.update(steering, dt)

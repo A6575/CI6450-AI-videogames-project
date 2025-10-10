@@ -41,8 +41,8 @@ class GUI:
 		enemy = NPC(
 			"Kinematic Seek",
 			100,
-			self.screen.get_width() // 4,
-			self.screen.get_height() // 4,
+			self.screen.get_width()//4,
+			self.screen.get_height()//4,
 			"KinematicSeek"
 		)
 		enemy.set_algorithm(target=player, max_speed=80)

@@ -15,6 +15,9 @@ class KinematicSeek:
 		# Calculate the direction to the target
 		direction = self.target.kinematic.position - self.character.kinematic.position
 
+		if direction.length() == 0:
+			return result  # No steering needed if on the same position
+
 		# Normalize the direction and scale by max speed
 		result.velocity = direction.normalize() * self.max_speed
 

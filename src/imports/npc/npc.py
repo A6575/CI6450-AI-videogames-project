@@ -18,6 +18,8 @@ class NPC:
 			rotation=0
 		)
 		self.algorithm_name = algorithm_name
+		self.map_width = 800   # valores por defecto; pueden cambiarse desde el exterior
+		self.map_height = 600
 		self.image = str(BASE_DIR / "assets" / "enemy.png")
 		self.sprite = load(self.image).convert_alpha()
 
@@ -61,9 +63,16 @@ class NPC:
 			# SteeringOutput
 			self.kinematic.update(steering, dt)
 		elif hasattr(steering, 'velocity') and hasattr(steering, 'rotation'):
-			# Kinematic steering (Vector2)
 			self.kinematic.position += steering.velocity * dt
 			self.kinematic.orientation += steering.rotation * dt
 		
-		# si el algoritmo no implementa ninguna interfaz conocida, no hace nada
-		return
+		# delimitar a dentro de la pantalla
+		if self.kinematic.position.x < 0:
+			self.kinematic.position.x = 0
+		elif self.kinematic.position.x > self.map_width:
+			self.kinematic.position.x = self.map_width
+
+		if self.kinematic.position.y < 0:
+			self.kinematic.position.y = 0
+		elif self.kinematic.position.y > self.map_height:
+			self.kinematic.position.y = self.map_height

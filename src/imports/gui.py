@@ -43,8 +43,9 @@ class GUI:
 			100,
 			self.screen.get_width() // 4,
 			self.screen.get_height() // 4,
+			"KinematicSeek"
 		)
-		enemy.set_algorithm("Seek", target=player, max_speed=80)
+		enemy.set_algorithm(target=player, max_speed=80)
 		dt = 0
 		while running:
 			for event in pygame.event.get():

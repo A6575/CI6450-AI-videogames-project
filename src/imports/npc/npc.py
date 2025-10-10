@@ -8,7 +8,7 @@ from imports.moves.switcher import SWITCHER_ALGORITHMS
 BASE_DIR = Path(__file__).resolve().parents[3]   # cuatro niveles arriba
 
 class NPC:
-	def __init__(self, name, health, x, y):
+	def __init__(self, name, health, x, y, algorithm_name=""):
 		self.name = name
 		self.health = health
 		self.kinematic = Kinematic(
@@ -17,12 +17,12 @@ class NPC:
 			orientation=270, 
 			rotation=0
 		)
-		
+		self.algorithm_name = algorithm_name
 		self.image = str(BASE_DIR / "assets" / "enemy.png")
 		self.sprite = load(self.image).convert_alpha()
 
-	def set_algorithm(self, algorithm_name, **params):
-		alg = SWITCHER_ALGORITHMS.get(algorithm_name, None)
+	def set_algorithm(self, **params):
+		alg = SWITCHER_ALGORITHMS.get(self.algorithm_name, None)
 		if not alg:
 			self.algorithm_class = None
 			self.algorithm_params = {}
@@ -56,19 +56,14 @@ class NPC:
 		if alg is None:
 			return
 
-		# Kinematic steering: el algoritmo ajusta la velocidad y devuelve un Vector2
-		if hasattr(alg, "get_kinematic_steering"):
-			steering = alg.get_kinematic_steering()
-			self.kinematic.position += steering.linear * dt
-
-			return
-
-		# Dynamic steering: algoritmo devuelve SteeringOutput(linear, angular)
-		if hasattr(alg, "get_dynamic_steering"):
-			steering = alg.get_dynamic_steering()
-			if steering:
-				self.kinematic.update(steering, dt)
-			return
-
+		steering = alg.get_steering()
+		if hasattr(steering, 'linear') and hasattr(steering, 'angular'):
+			# SteeringOutput
+			self.kinematic.update(steering, dt)
+		elif hasattr(steering, 'velocity') and hasattr(steering, 'rotation'):
+			# Kinematic steering (Vector2)
+			self.kinematic.position += steering.velocity * dt
+			self.kinematic.orientation += steering.rotation * dt
+		
 		# si el algoritmo no implementa ninguna interfaz conocida, no hace nada
 		return

@@ -18,7 +18,12 @@ class Kinematic:
 		self.velocity += steering.linear * time
 		self.rotation += steering.angular * time
 
-	def new_orientation(self):
-		if self.velocity.length() > 0:
-			return math.degrees(math.atan2(-self.velocity.x, -self.velocity.y))
-		return self.orientation
+	def new_orientation(self, velocity=None, orientation=None):
+		if velocity is None:
+			velocity = self.velocity
+		if orientation is None:
+			orientation = self.orientation
+
+		if velocity.length() > 0:
+			return math.degrees(math.atan2(-velocity.x, -velocity.y))
+		return orientation

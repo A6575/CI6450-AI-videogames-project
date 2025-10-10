@@ -17,6 +17,14 @@ class GUI:
 		rotated_sprite = pygame.transform.rotate(sprite_grande, character.kinematic.orientation)
 		rect = rotated_sprite.get_rect(center=(character.kinematic.position.x, character.kinematic.position.y))
 		self.screen.blit(rotated_sprite, rect)
+
+		# Fuente para mostrar nombres
+		self.font = pygame.font.SysFont(None, 16)
+
+		# Mostrar nombre arriba del personaje
+		name_surface = self.font.render(character.name, True, (255, 255, 255))
+		name_rect = name_surface.get_rect(center=(character.kinematic.position.x, character.kinematic.position.y - self.sprite_size[1] // 2 - 10))
+		self.screen.blit(name_surface, name_rect)
 	
 	def update_character(self, character, linear, dt, bounds=None, margin=(0, 0)):
 		keys = pygame.key.get_pressed()
@@ -30,6 +38,13 @@ class GUI:
 			self.screen.get_width() // 2,
 			self.screen.get_height() // 2,
 		)
+		enemy = NPC(
+			"Kinematic Seek",
+			100,
+			self.screen.get_width() // 4,
+			self.screen.get_height() // 4,
+		)
+		enemy.set_algorithm("Seek", target=player, max_speed=80)
 		dt = 0
 		while running:
 			for event in pygame.event.get():
@@ -38,6 +53,8 @@ class GUI:
 
 			self.screen.fill((112, 112, 112))
 			self.display_character(player)
+			self.display_character(enemy)
+			enemy.update_with_algorithm(dt)
 			linear = pygame.math.Vector2(0, 0)
 			bounds = (self.screen.get_width(), self.screen.get_height())
 			margin = (self.sprite_size[0] / 2, self.sprite_size[1] / 2)

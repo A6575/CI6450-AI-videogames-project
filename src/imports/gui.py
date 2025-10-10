@@ -1,29 +1,35 @@
 # Configuración de la GUI con pygame
 import pygame
-from imports.character import Character
+from imports.player.player import Player
+from imports.npc.npc import NPC
 class GUI:
 	def __init__(self):
 		pygame.init()
 		self.screen = pygame.display.set_mode((800, 600))
 		pygame.display.set_caption("Juego IA")
 		self.clock = pygame.time.Clock()
+		# Tamaño del sprite usado para dibujar y para calcular márgenes
+		self.sprite_size = (30, 42)
 	
 	def display_character(self, character):
-		# Nuevo tamaño de png (ancho, alto)
-		nuevo_tamano = (30, 42)
 		# Escalar png y rotar segun orientacion
-		sprite_grande = pygame.transform.scale(character.sprite, nuevo_tamano)
+		sprite_grande = pygame.transform.scale(character.sprite, self.sprite_size)
 		rotated_sprite = pygame.transform.rotate(sprite_grande, character.kinematic.orientation)
 		rect = rotated_sprite.get_rect(center=(character.kinematic.position.x, character.kinematic.position.y))
 		self.screen.blit(rotated_sprite, rect)
 	
-	def update_character(self, character, linear, dt):
+	def update_character(self, character, linear, dt, bounds=None, margin=(0, 0)):
 		keys = pygame.key.get_pressed()
-		character.move(keys, linear, dt)
+		character.move(keys, linear, dt, bounds=bounds, margin=margin)
 	
 	def run(self):
 		running = True
-		player = Character("Hero", 100, self.screen.get_width() // 2, self.screen.get_height() // 2, is_player=True)
+		player = Player(
+			"Hero", 
+			100, 
+			self.screen.get_width() // 2,
+			self.screen.get_height() // 2,
+		)
 		dt = 0
 		while running:
 			for event in pygame.event.get():
@@ -33,7 +39,9 @@ class GUI:
 			self.screen.fill((112, 112, 112))
 			self.display_character(player)
 			linear = pygame.math.Vector2(0, 0)
-			self.update_character(player, linear, dt)
+			bounds = (self.screen.get_width(), self.screen.get_height())
+			margin = (self.sprite_size[0] / 2, self.sprite_size[1] / 2)
+			self.update_character(player, linear, dt, bounds=bounds, margin=margin)
 			pygame.display.flip()
 			dt = self.clock.tick(60) / 1000
 			

@@ -61,7 +61,7 @@ class NPC:
 		steering = alg.get_steering()
 		if hasattr(steering, 'linear') and hasattr(steering, 'angular'):
 			# SteeringOutput
-			self.kinematic.update(steering, dt)
+			self.kinematic.update(steering, dt, 100)
 		elif hasattr(steering, 'velocity') and hasattr(steering, 'rotation'):
 			self.kinematic.position += steering.velocity * dt
 			self.kinematic.orientation += steering.rotation * dt

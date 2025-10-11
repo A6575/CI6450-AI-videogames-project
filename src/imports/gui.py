@@ -39,13 +39,13 @@ class GUI:
 			self.screen.get_height() // 2,
 		)
 		enemy = NPC(
-			"Dynamic Arrive",
+			"Dynamic Flee",
 			100,
-			self.screen.get_width()//4,
-			self.screen.get_height()//4,
-			"DynamicArrive"
+			self.screen.get_width()//2,
+			self.screen.get_height()//2,
+			"DynamicFlee"
 		)
-		enemy.set_algorithm(target=player, max_acceleration=80, max_speed=100, target_radius=10, slow_radius=50)
+		enemy.set_algorithm(target=player, max_acceleration=80)
 		dt = 0
 		while running:
 			for event in pygame.event.get():

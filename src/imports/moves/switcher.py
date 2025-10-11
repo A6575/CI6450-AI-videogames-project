@@ -4,6 +4,7 @@ from imports.moves.kinematic_flee import KinematicFlee
 from imports.moves.kinematic_wander import KinematicWander
 from imports.moves.dynamic_seek import DynamicSeek
 from imports.moves.dynamic_arrive import DynamicArrive
+from imports.moves.dynamic_flee import DynamicFlee
 
 SWITCHER_ALGORITHMS = {
 	"KinematicSeek": KinematicSeek,
@@ -12,4 +13,5 @@ SWITCHER_ALGORITHMS = {
 	"KinematicWander": KinematicWander,
 	"DynamicSeek": DynamicSeek,
 	"DynamicArrive": DynamicArrive,
+	"DynamicFlee": DynamicFlee,
 }

@@ -6,6 +6,7 @@ from imports.moves.dynamic_seek import DynamicSeek
 from imports.moves.dynamic_arrive import DynamicArrive
 from imports.moves.dynamic_flee import DynamicFlee
 from imports.moves.align import Align
+from imports.moves.velocity_match import VelocityMatch
 
 SWITCHER_ALGORITHMS = {
 	"KinematicSeek": KinematicSeek,
@@ -16,4 +17,5 @@ SWITCHER_ALGORITHMS = {
 	"DynamicArrive": DynamicArrive,
 	"DynamicFlee": DynamicFlee,
 	"Align": Align,
+	"VelocityMatch": VelocityMatch,
 }

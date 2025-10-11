@@ -61,13 +61,13 @@ class GUI:
 			self.screen.get_height() // 2,
 		)
 		enemy = NPC(
-			"Align",
+			"Velocity Match",
 			100,
 			self.screen.get_width()//4,
 			self.screen.get_height()//4,
-			"Align"
+			"VelocityMatch"
 		)
-		enemy.set_algorithm(target=player, max_rotation=20, max_angular_acceleration=60, target_radius=2, slow_radius=30, time_to_target=0.1)
+		enemy.set_algorithm(target=player, max_acceleration=100, time_to_target=0.1)
 		dt = 0
 		while running:
 			for event in pygame.event.get():

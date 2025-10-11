@@ -1,4 +1,5 @@
 # Configuración de la GUI con pygame
+import math
 import pygame
 from imports.player.player import Player
 from imports.npc.npc import NPC
@@ -25,6 +26,27 @@ class GUI:
 		name_surface = self.font.render(character.name, True, (255, 255, 255))
 		name_rect = name_surface.get_rect(center=(character.kinematic.position.x, character.kinematic.position.y - self.sprite_size[1] // 2 - 10))
 		self.screen.blit(name_surface, name_rect)
+
+		pos = (int(character.kinematic.position.x), int(character.kinematic.position.y))
+		radius = 25
+		pygame.draw.circle(self.screen, (0, 200, 255), pos, radius, 2)
+
+		# Calcular punto final de la flecha según orientación
+		angle_rad = -character.kinematic.orientation * (3.14159265 / 180)
+		end_x = pos[0] + int(radius * 0.8 * math.cos(angle_rad))
+		end_y = pos[1] + int(radius * 0.8 * math.sin(angle_rad))
+		end_pos = (end_x, end_y)
+		pygame.draw.line(self.screen, (255, 50, 50), pos, end_pos, 3)
+
+		# Dibujar cabeza de flecha
+		arrow_size = 8
+		arrow_angle = 0.5  # radianes
+		left_x = end_x + int(arrow_size * math.cos(angle_rad + arrow_angle))
+		left_y = end_y + int(arrow_size * math.sin(angle_rad + arrow_angle))
+		right_x = end_x + int(arrow_size * math.cos(angle_rad - arrow_angle))
+		right_y = end_y + int(arrow_size * math.sin(angle_rad - arrow_angle))
+		pygame.draw.line(self.screen, (255, 50, 50), end_pos, (left_x, left_y), 2)
+		pygame.draw.line(self.screen, (255, 50, 50), end_pos, (right_x, right_y), 2)
 	
 	def update_character(self, character, linear, dt, bounds=None, margin=(0, 0)):
 		keys = pygame.key.get_pressed()
@@ -39,13 +61,13 @@ class GUI:
 			self.screen.get_height() // 2,
 		)
 		enemy = NPC(
-			"Dynamic Flee",
+			"Align",
 			100,
-			self.screen.get_width()//2,
-			self.screen.get_height()//2,
-			"DynamicFlee"
+			self.screen.get_width()//4,
+			self.screen.get_height()//4,
+			"Align"
 		)
-		enemy.set_algorithm(target=player, max_acceleration=80)
+		enemy.set_algorithm(target=player, max_rotation=20, max_angular_acceleration=60, target_radius=2, slow_radius=30, time_to_target=0.1)
 		dt = 0
 		while running:
 			for event in pygame.event.get():

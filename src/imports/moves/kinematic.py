@@ -18,9 +18,12 @@ class Kinematic:
 		self.orientation = orientation 		# float
 		self.rotation = rotation 			# float
 
-	def update(self, steering, time, max_speed=float('inf')):
+	def update(self, steering, time, max_speed=float('inf'), is_player=True):
 		self.position += self.velocity * time
-		self.orientation = self.new_orientation()
+		if is_player:
+			self.orientation = self.new_orientation()
+		else:
+			self.orientation += self.rotation*time
 		self.velocity += steering.linear * time
 		self.rotation += steering.angular * time
 

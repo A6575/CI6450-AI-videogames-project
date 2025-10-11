@@ -1,5 +1,11 @@
 # Algoritmos de movimiento
 import math
+from pygame import Vector2
+
+class KinematicSteeringOutput:
+	def __init__(self, velocity, rotation):
+		self.velocity = velocity  # Vector2
+		self.rotation = rotation  # float
 class SteeringOutput:
 	def __init__(self, linear, angular):
 		self.linear = linear	# Vector2
@@ -27,3 +33,7 @@ class Kinematic:
 		if velocity.length() > 0:
 			return math.degrees(math.atan2(-velocity.x, -velocity.y))
 		return orientation
+	
+	def orientation_to_vector(self):
+		radians = math.radians(self.orientation)
+		return Vector2(-math.sin(radians), -math.cos(radians))

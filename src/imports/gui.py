@@ -39,13 +39,13 @@ class GUI:
 			self.screen.get_height() // 2,
 		)
 		enemy = NPC(
-			"Kinematic Seek",
+			"Kinematic Wander",
 			100,
 			self.screen.get_width()//4,
 			self.screen.get_height()//4,
-			"KinematicSeek"
+			"KinematicWander"
 		)
-		enemy.set_algorithm(target=player, max_speed=80)
+		enemy.set_algorithm(max_speed=80, max_rotation=180)
 		dt = 0
 		while running:
 			for event in pygame.event.get():

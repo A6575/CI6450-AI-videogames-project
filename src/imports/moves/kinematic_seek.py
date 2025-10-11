@@ -1,9 +1,6 @@
 from pygame.math import Vector2
+from imports.moves.kinematic import KinematicSteeringOutput
 
-class KinematicSteeringOutput:
-	def __init__(self, velocity, rotation):
-		self.velocity = velocity  # Vector2
-		self.rotation = rotation  # float
 class KinematicSeek:
 	def __init__(self, character, target, max_speed):
 		self.character = character

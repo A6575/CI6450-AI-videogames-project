@@ -1,5 +1,5 @@
 from pygame.math import Vector2
-from imports.moves.kinematic_seek import KinematicSteeringOutput
+from imports.moves.kinematic import KinematicSteeringOutput
 
 class KinematicArrive:
 	def __init__(self, character, target, max_speed, target_radius=5.0, slow_radius=50.0, time_to_target=0.1):

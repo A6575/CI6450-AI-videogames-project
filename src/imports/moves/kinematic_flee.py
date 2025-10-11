@@ -1,5 +1,5 @@
 from pygame.math import Vector2
-from imports.moves.kinematic_seek import KinematicSteeringOutput
+from imports.moves.kinematic import KinematicSteeringOutput
 
 class KinematicFlee:
 	def __init__(self, character, target, max_speed):

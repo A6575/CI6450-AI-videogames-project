@@ -60,7 +60,7 @@ class GUI:
 					self.screen.get_height()//4,
 					scenario_type
 				)
-		uses_rotation = scenario_type in ["Align"]
+		uses_rotation = scenario_type in ["Align", "VelocityMatch", "Face"]
 		match scenario_type:
 			case "KinematicSeek":
 				enemy.set_algorithm(target=target, max_speed=80)
@@ -92,7 +92,7 @@ class GUI:
 			self.screen.get_width() // 2,
 			self.screen.get_height() // 2,
 		)
-		enemy, uses_rotation = self.set_enemy_algorithm("Pursue", target=player)
+		enemy, uses_rotation = self.set_enemy_algorithm("VelocityMatch", target=player)
 		dt = 0
 		while running:
 			for event in pygame.event.get():

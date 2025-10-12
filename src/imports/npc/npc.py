@@ -47,13 +47,6 @@ class NPC:
 		return self.algorithm_instance
 
 	def update_with_algorithm(self, dt, uses_rotation=False):
-		"""
-		Actualiza la posición/orientación del NPC usando el algoritmo configurado.
-		- Si el algoritmo define get_kinematic_steering(), se asume que devuelve una Vector2
-			y/o que el algoritmo actualiza self.kinematic.velocity internamente.
-		- Si define get_dynamic_steering(), se asume que devuelve un SteeringOutput y se
-			aplica con Kinematic.update.
-		"""
 		alg = self._ensure_algorithm_instance()
 		if alg is None:
 			return

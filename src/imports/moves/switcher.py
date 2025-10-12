@@ -10,6 +10,8 @@ from imports.moves.velocity_match import VelocityMatch
 from imports.moves.pursue import Pursue
 from imports.moves.evade import Evade
 from imports.moves.face import Face
+from imports.moves.look_where_youre_going import LookWhereYoureGoing
+from imports.moves.blended_steering import BlendedSteeringLWYG
 
 SWITCHER_ALGORITHMS = {
 	"KinematicSeek": KinematicSeek,
@@ -24,4 +26,6 @@ SWITCHER_ALGORITHMS = {
 	"Pursue": Pursue,
 	"Evade": Evade,
 	"Face": Face,
+	"LookWhereYoureGoing": LookWhereYoureGoing,
+	"BlendedSteeringLWYG": BlendedSteeringLWYG
 }

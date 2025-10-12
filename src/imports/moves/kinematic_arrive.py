@@ -2,7 +2,7 @@ from pygame.math import Vector2
 from imports.moves.kinematic import KinematicSteeringOutput
 
 class KinematicArrive:
-	def __init__(self, character, target, max_speed, target_radius=5.0, slow_radius=50.0, time_to_target=0.1):
+	def __init__(self, character, target, max_speed, target_radius=5.0, time_to_target=0.1):
 		self.character = character
 		self.target = target
 		self.max_speed = max_speed
@@ -11,12 +11,12 @@ class KinematicArrive:
 
 	def get_steering(self) -> KinematicSteeringOutput:
 		result = KinematicSteeringOutput(Vector2(0, 0), 0)
-		# Calculate the direction to the target
+
 		direction = self.target.kinematic.position - self.character.kinematic.position
 
-		# Check if we are within the target radius
+
 		if direction.length() < self.target_radius:
-			return result  # No steering needed
+			return result
 
 		result.velocity = direction / self.time_to_target
 

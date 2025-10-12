@@ -6,10 +6,10 @@ class Align:
 	def __init__(self, character, target, max_rotation, max_angular_acceleration, target_radius, slow_radius, time_to_target):
 		self.character = character
 		self.target = target
-		self.max_rotation = max_rotation   # Convertir a radianes
-		self.max_angular_acceleration = max_angular_acceleration # Convertir a radianes
-		self.target_radius = target_radius # Convertir a radianes
-		self.slow_radius = slow_radius  # Convertir a radianes
+		self.max_rotation = max_rotation
+		self.max_angular_acceleration = max_angular_acceleration
+		self.target_radius = target_radius
+		self.slow_radius = slow_radius 
 		self.time_to_target = time_to_target
 	
 	def get_steering(self):
@@ -39,5 +39,5 @@ class Align:
 		# Limit the angular acceleration to max angular acceleration
 		if abs(steering.angular) > self.max_angular_acceleration:
 			steering.angular = (steering.angular / abs(steering.angular)) * self.max_angular_acceleration
-		print(f"Steering.angular: {steering.angular}")
+	
 		return steering

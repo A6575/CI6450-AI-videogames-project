@@ -9,6 +9,7 @@ from imports.moves.align import Align
 from imports.moves.velocity_match import VelocityMatch
 from imports.moves.pursue import Pursue
 from imports.moves.evade import Evade
+from imports.moves.face import Face
 
 SWITCHER_ALGORITHMS = {
 	"KinematicSeek": KinematicSeek,
@@ -22,4 +23,5 @@ SWITCHER_ALGORITHMS = {
 	"VelocityMatch": VelocityMatch,
 	"Pursue": Pursue,
 	"Evade": Evade,
+	"Face": Face,
 }

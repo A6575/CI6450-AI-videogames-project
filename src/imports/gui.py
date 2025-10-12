@@ -84,6 +84,8 @@ class GUI:
 				enemy.set_algorithm(pursue_target=target, max_prediction=0.5, explicit_target=Player("Target", 0, 0, 0))
 			case "Evade":
 				enemy.set_algorithm(evade_target=target, max_prediction=0.5, explicit_target=Player("Target", 0, 0, 0))
+			case "Face":
+				enemy.set_algorithm(face_target=target, explicit_target=Player("Target", 0, 0, 0))
 		return enemy, uses_rotation
 	
 	def run(self):
@@ -94,7 +96,7 @@ class GUI:
 			self.screen.get_width() // 2,
 			self.screen.get_height() // 2,
 		)
-		enemy, uses_rotation = self.set_enemy_algorithm("Evade", target=player)
+		enemy, uses_rotation = self.set_enemy_algorithm("Face", target=player)
 		dt = 0
 		while running:
 			for event in pygame.event.get():

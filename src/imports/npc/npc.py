@@ -46,7 +46,7 @@ class NPC:
 			self.algorithm_instance = self.algorithm_class(**kwargs)
 		return self.algorithm_instance
 
-	def update_with_algorithm(self, dt):
+	def update_with_algorithm(self, dt, uses_rotation=False):
 		"""
 		Actualiza la posición/orientación del NPC usando el algoritmo configurado.
 		- Si el algoritmo define get_kinematic_steering(), se asume que devuelve una Vector2
@@ -61,7 +61,7 @@ class NPC:
 		steering = alg.get_steering()
 		if hasattr(steering, 'linear') and hasattr(steering, 'angular'):
 			# SteeringOutput
-			self.kinematic.update(steering, dt, 100, False)
+			self.kinematic.update(steering, dt, 100, uses_rotation)
 		elif hasattr(steering, 'velocity') and hasattr(steering, 'rotation'):
 			self.kinematic.position += steering.velocity * dt
 			self.kinematic.orientation += steering.rotation * dt

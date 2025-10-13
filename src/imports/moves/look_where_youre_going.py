@@ -5,15 +5,17 @@ import math
 
 class LookWhereYoureGoing:
 	def __init__(self, character, explicit_target):
-		self.character = character
-		self.explicit_target = explicit_target
+		self.character = character				# El personaje que mira hacia donde va (NPC)
+		self.explicit_target = explicit_target  # El objetivo explícito para la orientación (Player)
 
 	def get_steering(self):
 		if self.character.kinematic.velocity.length() == 0:
 			return SteeringOutput(Vector2(0, 0), 0)  # No hay movimiento, no se necesita girar
 
+		# Actualizar la orientación del objetivo explícito para que mire en la dirección de la velocidad del personaje
 		self.explicit_target.kinematic.orientation = math.degrees(math.atan2(-self.character.kinematic.velocity.x, -self.character.kinematic.velocity.y))
 
+		# Usar el comportamiento de alineación para girar hacia la orientación del objetivo explícito
 		align = Align(
 			character=self.character,
 			target=self.explicit_target,

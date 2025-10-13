@@ -3,22 +3,23 @@ from pygame.math import Vector2
 
 class FollowPath:
 	def __init__(self, character, path, explicit_target, path_offset=20.0):
-		self.character = character
-		self.explicit_target = explicit_target
-		self.path = path
-		self.path_offset = path_offset
-		self.current_target_index = 0
+		self.character = character				# El personaje que sigue el camino (NPC)
+		self.explicit_target = explicit_target	# El objetivo explícito para la orientación (Player)
+		self.path = path						# El camino a seguir (Path)
+		self.path_offset = path_offset			# El offset del camino
+		self.current_target_index = 0			# El índice del objetivo actual en el camino
 
 	def get_steering(self):
 		# calcular el punto mas cercano en el path
 		params = self.path.get_params(self.character.kinematic.position)
 		closest_point = params["closest_point"]
-		#print(closest_point)
-		distance = params["distance"]
-		# aplicar offset
+
+		# aplicar offset del target en el camino
 		target_param = Vector2(closest_point.x + self.path_offset * params["path_direction"].x,
 										closest_point.y + self.path_offset * params["path_direction"].y)
+		# actualizar la posición del objetivo explícito
 		self.explicit_target.kinematic.position = target_param
+		# usar arrive para llegar al objetivo explícito
 		arrive = DynamicArrive(
 			character=self.character, 
 			target=self.explicit_target, 

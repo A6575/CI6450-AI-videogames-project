@@ -5,22 +5,24 @@ from pygame.image import load
 from pygame import K_LEFT, K_RIGHT, K_UP, K_DOWN
 from pathlib import Path
 
+# Definir la ruta base para cargar imágenes
 BASE_DIR = Path(__file__).resolve().parents[3]   # cuatro niveles arriba
 
 class Player:
 	def __init__(self, name, health, x, y):
-		self.name = name
-		self.health = health
-		self.kinematic = Kinematic(
+		self.name = name				# Nombre del personaje
+		self.health = health			# Salud del personaje
+		self.kinematic = Kinematic(		# Estado cinemático del personaje
 			position=Vector2(x, y),
 			velocity=Vector2(0, 0), 
 			orientation=270, 
 			rotation=0
 		)
 		
-		self.image = str(BASE_DIR / "assets" / "player.png")
-		self.sprite = load(self.image).convert_alpha()
+		self.image = str(BASE_DIR / "assets" / "player.png") # Ruta a la imagen del personaje
+		self.sprite = load(self.image).convert_alpha()		 # Cargar la imagen del personaje
 
+	# Mover el personaje basado en la entrada del teclado
 	def move(self, keys, linear, dt, bounds=None, margin=(0, 0)):
 		if keys[K_LEFT]:
 			linear.x -= 1
@@ -33,6 +35,7 @@ class Player:
 		if linear.length() > 0:
 			linear = linear.normalize() * 100 
 		
+		# Crear un SteeringOutput con la velocidad calculada 
 		steering = SteeringOutput(linear, 0)
 		
 		self.kinematic.update(steering, dt)

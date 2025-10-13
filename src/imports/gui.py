@@ -7,13 +7,12 @@ from imports.npc.npc import NPC
 from imports.map.path import Path
 class GUI:
 	def __init__(self):
-		pygame.init()
-		self.screen = pygame.display.set_mode((800, 600))
-		pygame.display.set_caption("Juego IA")
-		self.clock = pygame.time.Clock()
-		# Tamaño del sprite usado para dibujar y para calcular márgenes
-		self.sprite_size = (30, 42)
-		self.obstacles = []
+		pygame.init()										# Inicializar pygame
+		self.screen = pygame.display.set_mode((800, 600)) 	# Tamaño de la ventana
+		pygame.display.set_caption("Juego IA")				# Título de la ventana
+		self.clock = pygame.time.Clock()					# Reloj para controlar FPS
+		self.sprite_size = (30, 42)							# Tamaño del sprite usado para dibujar y para calcular márgenes
+		self.obstacles = []									# Lista de obstáculos (pygame.Rect)		
 	
 	def display_character(self, character):
 		# Escalar png y rotar segun orientacion
@@ -22,7 +21,7 @@ class GUI:
 		rect = rotated_sprite.get_rect(center=(character.kinematic.position.x, character.kinematic.position.y))
 		self.screen.blit(rotated_sprite, rect)
 
-		# Fuente para mostrar nombres
+		# Fuente para mostrar nombres de los personajes
 		self.font = pygame.font.SysFont(None, 16)
 
 		# Mostrar nombre arriba del personaje
@@ -31,6 +30,7 @@ class GUI:
 		self.screen.blit(name_surface, name_rect)
 	
 	def display_path(self, path):
+		# Dibujar el camino
 		points = path.get_path()
 		if len(points) < 2:
 			return
@@ -38,21 +38,26 @@ class GUI:
 		for i in range(len(points) - 1):
 			start_pos = (points[i].x, points[i].y)
 			end_pos = (points[i + 1].x, points[i + 1].y)
+			# Alternar colores para visibilidad
 			if i % 2 == 0:
 				pygame.draw.line(self.screen, (0, 0, 0), start_pos, end_pos, 2)
 			else:
 				pygame.draw.line(self.screen, (255, 255, 0), start_pos, end_pos, 2)
 
 	def display_obstacles(self):
+		# Dibujar los obstáculos
 		for obstacle in self.obstacles:
 			pygame.draw.rect(self.screen, (139, 69, 19), obstacle)
 	
 	def update_character(self, character, linear, dt, bounds=None, margin=(0, 0)):
+		# Actualizar la posición del personaje basado en la entrada del teclado
 		keys = pygame.key.get_pressed()
 		character.move(keys, linear, dt, bounds=bounds, margin=margin)
 	
 	def set_enemy_algorithm(self, scenario_type, target, path):
-		enemies = []
+		# Configurar el algoritmo de movimiento del NPC basado en el escenario seleccionado
+		enemies = [] # Lista de NPCs generados segun el escenario
+		# Determinar si el escenario usa rotación para actualizar el kinematic
 		uses_rotation = scenario_type in ["Align", "VelocityMatch", "Face", "DynamicWander", "BlendedSteeringLWYG", "PrioritySteering"]
 		match scenario_type:
 			case "KinematicSeek":
@@ -161,6 +166,7 @@ class GUI:
 				radius = 150
 				player_pos = target.kinematic.position
 
+				# Distribuir NPCs en un círculo alrededor del jugador
 				for i in range(num_npcs):
 					angle = (2 * math.pi / num_npcs) * i
 					
@@ -201,7 +207,7 @@ class GUI:
 				enemies[-1].set_algorithm(movement_behavior=evade_movement_behavior, explicit_target=Player("Target", 0, 0, 0))
 			case "FollowPath":
 				path_points = path.get_path()
-
+				# Calcular el bounding box del camino para posicionar NPCs dentro y fuera
 				min_x = min(point.x for point in path_points)
 				max_x = max(point.x for point in path_points)
 				min_y = min(point.y for point in path_points)
@@ -253,6 +259,7 @@ class GUI:
 					enemies[-1].kinematic.orientation = random.randint(0, 360)
 					enemies[-1].set_algorithm(max_acceleration=50, wander_target=Player("WanderTarget", 0, 0, 0), explicit_target=Player("Target", 0, 0, 0))
 			case "PrioritySteering":
+				# Crear obstáculos aleatorios
 				for _ in range(5):
 					size = random.randint(50, 100)
 					x = random.randint(0, self.screen.get_width() - size)
@@ -322,6 +329,7 @@ class GUI:
 		return enemies, uses_rotation
 
 	def run(self, draw_path, scenario_type, draw_obstacles):
+		# Bucle principal del juego
 		running = True
 		player = Player(
 			"Hero", 
@@ -329,15 +337,15 @@ class GUI:
 			self.screen.get_width() // 2,
 			self.screen.get_height() // 2,
 		)
-		path = Path(pygame.Vector2(400,150))
-		enemies, uses_rotation = self.set_enemy_algorithm(scenario_type, target=player, path=path)
+		path = Path(pygame.Vector2(150,150)) # Crear un camino con punto inicial (Vector2)
+		enemies, uses_rotation = self.set_enemy_algorithm(scenario_type, target=player, path=path) # Configurar NPCs segun escenario
 		dt = 0
 		while running:
 			for event in pygame.event.get():
 				if event.type == pygame.QUIT:
 					running = False
 
-			self.screen.fill((112, 112, 112))
+			self.screen.fill((112, 112, 112)) # Color de fondo gris
 			if draw_obstacles:
 				self.display_obstacles()
 			if draw_path:

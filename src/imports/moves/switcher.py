@@ -15,6 +15,7 @@ from imports.moves.blended_steering import BlendedSteeringLWYG
 from imports.moves.path_following import FollowPath
 from imports.moves.priority_steering import PrioritySteering
 
+# Diccionario que mapea nombres de algoritmos a sus clases correspondientes
 SWITCHER_ALGORITHMS = {
 	"KinematicSeek": KinematicSeek,
 	"KinematicArrive": KinematicArrive,

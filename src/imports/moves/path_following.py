@@ -14,7 +14,7 @@ class FollowPath:
 		params = self.path.get_params(self.character.kinematic.position)
 		closest_point = params["closest_point"]
 
-		# aplicar offset del target en el camino
+		# aplicar offset del target en el camino y actualizar la posición del objetivo explícito
 		target_param = Vector2(closest_point.x + self.path_offset * params["path_direction"].x,
 										closest_point.y + self.path_offset * params["path_direction"].y)
 		# actualizar la posición del objetivo explícito

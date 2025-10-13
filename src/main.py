@@ -5,6 +5,6 @@ if __name__ == "__main__":
 	gui = GUI()
 	gui.run(
 		draw_path=False, 
-		scenario_type="PrioritySteering",
-		draw_obstacles=True
+		scenario_type="KinematicSeek",
+		draw_obstacles=False
 	)

@@ -5,25 +5,27 @@ from pathlib import Path
 from imports.moves.kinematic import Kinematic
 from imports.moves.switcher import SWITCHER_ALGORITHMS
 
+# Directorio base para cargar recursos
 BASE_DIR = Path(__file__).resolve().parents[3]   # cuatro niveles arriba
 
 class NPC:
 	def __init__(self, name, health, x, y, algorithm_name=""):
-		self.name = name
-		self.health = health
-		self.kinematic = Kinematic(
+		self.name = name				# Nombre del NPC
+		self.health = health			# Salud del NPC
+		self.kinematic = Kinematic(		# Estado cinemático del NPC
 			position=Vector2(x, y),
 			velocity=Vector2(0, 0), 
 			orientation=270, 
 			rotation=0
 		)
-		self.algorithm_name = algorithm_name
-		self.map_width = 800   # valores por defecto; pueden cambiarse desde el exterior
+		self.algorithm_name = algorithm_name	# Nombre del algoritmo de movimiento
+		self.map_width = 800   # valores por defecto de tamaño del mapa
 		self.map_height = 600
-		self.image = str(BASE_DIR / "assets" / "enemy.png")
-		self.sprite = load(self.image).convert_alpha()
+		self.image = str(BASE_DIR / "assets" / "enemy.png") # Ruta a la imagen del NPC
+		self.sprite = load(self.image).convert_alpha()		# Cargar la imagen del NPC
 
 	def set_algorithm(self, **params):
+		# Configura el algoritmo de movimiento basado en el nombre y parámetros dados
 		alg = SWITCHER_ALGORITHMS.get(self.algorithm_name, None)
 		if not alg:
 			self.algorithm_class = None
@@ -36,6 +38,7 @@ class NPC:
 		return True
 	
 	def _ensure_algorithm_instance(self):
+		# Asegura que la instancia del algoritmo esté creada
 		if not self.algorithm_class:
 			return None
 		if self.algorithm_instance is None:
@@ -47,15 +50,17 @@ class NPC:
 		return self.algorithm_instance
 
 	def update_with_algorithm(self, dt, uses_rotation=False):
+		# Actualiza la posición y orientación del NPC usando el algoritmo de movimiento
 		alg = self._ensure_algorithm_instance()
 		if alg is None:
 			return
-
+		# obtener el steering del algoritmo y actualizar el kinematic
 		steering = alg.get_steering()
 		if hasattr(steering, 'linear') and hasattr(steering, 'angular'):
-			# SteeringOutput
+			# Si el steering es un SteeringOutput, acutualizar usando el método update
 			self.kinematic.update(steering, dt, 100, uses_rotation)
 		elif hasattr(steering, 'velocity') and hasattr(steering, 'rotation'):
+			# Si el steering es un KinematicSteeringOutput, actualizar directamente
 			self.kinematic.position += steering.velocity * dt
 			self.kinematic.orientation += steering.rotation * dt
 		

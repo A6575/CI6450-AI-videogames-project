@@ -3,4 +3,7 @@ from imports.gui import GUI
 
 if __name__ == "__main__":
 	gui = GUI()
-	gui.run()
+	gui.run(
+		draw_path=False, 
+		scenario_type="DynamicWander"
+	)

@@ -1,15 +1,17 @@
 from imports.moves.kinematic import SteeringOutput
-from imports.moves.collision_avoidance import CollisionAvoidance
-from imports.moves.dynamic_wander import DynamicWander
+from imports.moves.obstacle_avoidance import ObstacleAvoidance
+from imports.moves.blended_steering import BlendedSteeringLWYG
 from pygame.math import Vector2
 
 class PrioritySteering:
 	def __init__(self, character, behaviors):
 		self.character = character
 		self.behaviors = behaviors  # Diccionario con ["comportamiento": parametros]
-		self.algos = [CollisionAvoidance(character=self.character, **self.behaviors["CollisionAvoidance"]),
-					  DynamicWander(character=self.character, **self.behaviors["DynamicWander"])]
-			# Ejemplo: {"CollisionAvoidance": {obstacles: [...], radius: 5, max_acceleration: 100}, "Evade": {evade_target: NPC(...), max_prediction: 1.0}}
+		self.algos = []
+		if "ObstacleAvoidance" in behaviors:
+			self.algos.append(ObstacleAvoidance(character=self.character, **self.behaviors["ObstacleAvoidance"]))
+		if "BlendedSteeringLWYG" in behaviors:
+			self.algos.append(BlendedSteeringLWYG(character=self.character, **self.behaviors["BlendedSteeringLWYG"]))
 
 	def get_steering(self):
 		for alg in self.algos:

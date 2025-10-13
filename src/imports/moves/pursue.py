@@ -1,7 +1,7 @@
 from imports.moves.dynamic_arrive import DynamicArrive
 
 class Pursue:
-	def __init__(self, character, pursue_target, max_prediction, explicit_target, max_acceleration=100, max_speed=100):
+	def __init__(self, character, pursue_target, max_prediction, explicit_target, max_acceleration=10, max_speed=80):
 		self.character = character
 		self.pursue_target = pursue_target
 		self.max_prediction = max_prediction

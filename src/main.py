@@ -5,5 +5,6 @@ if __name__ == "__main__":
 	gui = GUI()
 	gui.run(
 		draw_path=False, 
-		scenario_type="DynamicWander"
+		scenario_type="KinematicArrive",
+		draw_obstacles=False
 	)

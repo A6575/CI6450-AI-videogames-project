@@ -38,7 +38,7 @@ class Player:
 		# Crear un SteeringOutput con la velocidad calculada 
 		steering = SteeringOutput(linear, 0)
 		
-		self.kinematic.update(steering, dt)
+		self.kinematic.update(steering, dt, 120)
 
 		# Limitar movimiento a los bordes de la pantalla
 		if bounds:

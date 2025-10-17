@@ -1,7 +1,7 @@
 from imports.moves.dynamic_flee import DynamicFlee
 
 class Evade:
-	def __init__(self, character, evade_target, max_prediction, explicit_target, max_acceleration=10):
+	def __init__(self, character, evade_target, max_prediction, explicit_target, max_acceleration=150):
 		self.character = character					# El personaje que realiza la acción de evadir (NPC)
 		self.evade_target = evade_target			# El objetivo que se está evadiendo (Player)
 		self.max_prediction = max_prediction		# La predicción de tiempo máxima

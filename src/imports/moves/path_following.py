@@ -23,10 +23,10 @@ class FollowPath:
 		arrive = DynamicArrive(
 			character=self.character, 
 			target=self.explicit_target, 
-			max_acceleration=80,
+			max_acceleration=150,
 			max_speed=80,
 			target_radius=5.0,
-			slow_radius=50.0,
+			slow_radius=6.0,
 			time_to_target=0.1
 		)
 		return arrive.get_steering()

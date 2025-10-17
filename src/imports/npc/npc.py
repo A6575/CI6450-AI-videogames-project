@@ -49,7 +49,7 @@ class NPC:
 			self.algorithm_instance = self.algorithm_class(**kwargs)
 		return self.algorithm_instance
 
-	def update_with_algorithm(self, dt, uses_rotation=False):
+	def update_with_algorithm(self, dt, uses_rotation=False, teletransport=False):
 		# Actualiza la posición y orientación del NPC usando el algoritmo de movimiento
 		alg = self._ensure_algorithm_instance()
 		if alg is None:
@@ -58,19 +58,31 @@ class NPC:
 		steering = alg.get_steering()
 		if hasattr(steering, 'linear') and hasattr(steering, 'angular'):
 			# Si el steering es un SteeringOutput, acutualizar usando el método update
-			self.kinematic.update(steering, dt, 100, uses_rotation)
+			if steering.linear.length() > 0 or steering.angular != 0:
+				self.kinematic.update(steering, dt, 100, uses_rotation)
 		elif hasattr(steering, 'velocity') and hasattr(steering, 'rotation'):
 			# Si el steering es un KinematicSteeringOutput, actualizar directamente
 			self.kinematic.position += steering.velocity * dt
 			self.kinematic.orientation += steering.rotation * dt
 		
-		# delimitar a dentro de la pantalla
-		if self.kinematic.position.x < 0:
-			self.kinematic.position.x = 0
-		elif self.kinematic.position.x > self.map_width:
-			self.kinematic.position.x = self.map_width
+		if teletransport:
+			# Teletransportar al NPC si sale de los límites del mapa
+			if self.kinematic.position.x < -10:
+				self.kinematic.position.x = self.map_width
+			elif self.kinematic.position.x > self.map_width + 10:
+				self.kinematic.position.x = 0
+			if self.kinematic.position.y < -10:
+				self.kinematic.position.y = self.map_height
+			elif self.kinematic.position.y > self.map_height + 10:
+				self.kinematic.position.y = 0
+		else:
+			# delimitar a dentro de la pantalla
+			if self.kinematic.position.x < 0:
+				self.kinematic.position.x = 0
+			elif self.kinematic.position.x > self.map_width:
+				self.kinematic.position.x = self.map_width
 
-		if self.kinematic.position.y < 0:
-			self.kinematic.position.y = 0
-		elif self.kinematic.position.y > self.map_height:
-			self.kinematic.position.y = self.map_height
+			if self.kinematic.position.y < 0:
+				self.kinematic.position.y = 0
+			elif self.kinematic.position.y > self.map_height:
+				self.kinematic.position.y = self.map_height

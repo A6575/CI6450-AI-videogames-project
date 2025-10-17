@@ -23,8 +23,8 @@ class Face:
 		align = Align(
 			character=self.character,
 			target=self.explicit_target,
-			max_rotation=50,
-			max_angular_acceleration=100,
+			max_rotation=100,
+			max_angular_acceleration=150,
 			target_radius=5,
 			slow_radius=10,
 			time_to_target=0.1

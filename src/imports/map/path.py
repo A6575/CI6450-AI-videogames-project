@@ -9,7 +9,7 @@ class Path:
 		self.rectangular = rectangular  # Indica si el camino es rectangular o no
 
 	# Genera un camino rectangular a partir del punto inicial
-	def _generate_rectangular_path(self, width=300, height=200, num_points=100):
+	def _generate_rectangular_path(self, width=500, height=300, num_points=200):
 		x, y = self.init_point.x, self.init_point.y
 		points = []
 		# Calcular la cantidad de puntos por lado proporcional al tamaño del rectángulo
@@ -42,14 +42,16 @@ class Path:
 		return points
 	
 	# Genera un camino circular alrededor del punto inicial
-	def _generate_circular_path(self, radius=100, num_points=100):
+	def _generate_circular_path(self, radius=200, num_points=200):
 		x, y = self.init_point.x, self.init_point.y
 		points = []
 		for i in range(num_points):
-			angle = (2 * 3.14159 / num_points) * i
+			angle = (2 * math.pi / num_points) * i
 			point = Vector2(x + radius * math.cos(angle), y + radius * math.sin(angle))
 			points.append(point)
-		points.append(self.init_point)  # Cerrar el camino volviendo al punto inicial
+		# Cerrar el camino volviendo al primer punto de la circunferencia (no al punto central)
+		if points:
+			points.append(points[0])
 		return points
 	
 	# Devuelve el camino completo como una lista de puntos (Vector2)

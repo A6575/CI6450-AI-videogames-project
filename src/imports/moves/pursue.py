@@ -1,7 +1,7 @@
 from imports.moves.dynamic_arrive import DynamicArrive
 
 class Pursue:
-	def __init__(self, character, pursue_target, max_prediction, explicit_target, max_acceleration=10, max_speed=80):
+	def __init__(self, character, pursue_target, max_prediction, explicit_target, max_acceleration=100, max_speed=100):
 		self.character = character					# El personaje que persigue (NPC)
 		self.pursue_target = pursue_target			# El objetivo a perseguir (Player)
 		self.max_prediction = max_prediction		# La predicción de tiempo máxima
@@ -32,7 +32,7 @@ class Pursue:
 			target=self.explicit_target,
 			max_acceleration=self.max_acceleration,
 			max_speed=self.max_speed,
-			target_radius=3,
+			target_radius=10,
 			slow_radius=50,
 			time_to_target=0.1
 		)

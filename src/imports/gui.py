@@ -77,7 +77,7 @@ class GUI:
 					self.screen.get_height()//4,
 					scenario_type
 				))
-				enemies[0].set_algorithm(target=target, max_speed=80, target_radius=5.0, time_to_target=0.1)
+				enemies[0].set_algorithm(target=target, max_speed=100, target_radius=5.0, time_to_target=0.5)
 			case "KinematicFlee":
 				enemies.append(NPC(
 					scenario_type,
@@ -86,7 +86,7 @@ class GUI:
 					self.screen.get_height()//4,
 					scenario_type
 				))
-				enemies[0].set_algorithm(target=target, max_speed=20)
+				enemies[0].set_algorithm(target=target, max_speed=30)
 			case "KinematicWander":
 				for _ in range(5):
 					enemies.append(NPC(
@@ -97,7 +97,7 @@ class GUI:
 						scenario_type
 					))
 					enemies[-1].kinematic.orientation = random.randint(0, 360)
-					enemies[-1].set_algorithm(max_speed=20, max_rotation=150)
+					enemies[-1].set_algorithm(max_speed=80, max_rotation=250)
 			case "DynamicSeek":
 				enemies.append(NPC(
 					scenario_type,
@@ -106,7 +106,7 @@ class GUI:
 					self.screen.get_height()//4,
 					scenario_type
 				))
-				enemies[0].set_algorithm(target=target, max_acceleration=80)
+				enemies[0].set_algorithm(target=target, max_acceleration=150)
 			case "DynamicArrive":
 				enemies.append(NPC(
 					scenario_type,
@@ -115,16 +115,16 @@ class GUI:
 					self.screen.get_height()//4,
 					scenario_type
 				))
-				enemies[0].set_algorithm(target=target, max_acceleration=80, max_speed=80, target_radius=5.0, slow_radius=50.0, time_to_target=0.1)
+				enemies[0].set_algorithm(target=target, max_acceleration=150, max_speed=120, target_radius=5.0, slow_radius=100.0, time_to_target=0.1)
 			case "DynamicFlee":
 				enemies.append(NPC(
 					scenario_type,
 					100,
-					self.screen.get_width()//4,
-					self.screen.get_height()//4,
+					self.screen.get_width()//2-50,
+					self.screen.get_height()//2-50,
 					scenario_type
 				))
-				enemies[0].set_algorithm(target=target, max_acceleration=10)
+				enemies[0].set_algorithm(target=target, max_acceleration=20)
 			case "Align":
 				enemies.append(NPC(
 					scenario_type,
@@ -133,7 +133,7 @@ class GUI:
 					self.screen.get_height()//4,
 					scenario_type
 				))
-				enemies[0].set_algorithm(target=target, max_rotation=50, max_angular_acceleration=100, target_radius=5, slow_radius=10, time_to_target=0.1)
+				enemies[0].set_algorithm(target=target, max_rotation=90, max_angular_acceleration=80, target_radius=0.5, slow_radius=50, time_to_target=0.1)
 			case "VelocityMatch":
 				enemies.append(NPC(
 					scenario_type,
@@ -151,16 +151,16 @@ class GUI:
 					self.screen.get_height()//4,
 					scenario_type
 				))
-				enemies[0].set_algorithm(pursue_target=target, max_prediction=0.5, explicit_target=Player("Target", 0, 0, 0))
+				enemies[0].set_algorithm(pursue_target=target, max_prediction=3, explicit_target=Player("Target", 0, 0, 0))
 			case "Evade":
 				enemies.append(NPC(
 					scenario_type,
 					100,
-					self.screen.get_width()//4,
-					self.screen.get_height()//4,
+					self.screen.get_width()//2-50,
+					self.screen.get_height()//2-50,
 					scenario_type
 				))
-				enemies[0].set_algorithm(evade_target=target, max_prediction=0.5, explicit_target=Player("Target", 0, 0, 0))
+				enemies[0].set_algorithm(evade_target=target, max_prediction=3, explicit_target=Player("Target", 0, 0, 0))
 			case "Face":
 				num_npcs = 10
 				radius = 150
@@ -257,22 +257,15 @@ class GUI:
 						scenario_type
 					))
 					enemies[-1].kinematic.orientation = random.randint(0, 360)
-					enemies[-1].set_algorithm(max_acceleration=50, wander_target=Player("WanderTarget", 0, 0, 0), explicit_target=Player("Target", 0, 0, 0))
+					enemies[-1].set_algorithm(max_acceleration=80, wander_target=Player("WanderTarget", 0, 0, 0), explicit_target=Player("Target", 0, 0, 0))
 			case "PrioritySteering":
-				# Crear obstáculos aleatorios
-				for _ in range(5):
+				# Crear obstáculos fijos
+				positions = [(150,150), (600,100), (400,400), (200,350), (650,300)]
+				for pos in positions:
+					x, y = pos
 					size = random.randint(50, 100)
-					x = random.randint(0, self.screen.get_width() - size)
-					y = random.randint(0, self.screen.get_height() - size)
 					self.obstacles.append(pygame.Rect(x, y, size, size))
-				""" # Añadir paredes como obstáculos
-				wall_thickness = 10
-				screen_width = self.screen.get_width()
-				screen_height = self.screen.get_height()
-				self.obstacles.append(pygame.Rect(0, 0, screen_width, wall_thickness))  # Pared superior
-				self.obstacles.append(pygame.Rect(0, screen_height - wall_thickness, screen_width, wall_thickness))  # Pared inferior
-				self.obstacles.append(pygame.Rect(0, 0, wall_thickness, screen_height))  # Pared izquierda
-				self.obstacles.append(pygame.Rect(screen_width - wall_thickness, 0, wall_thickness, screen_height))  # Pared derecha """
+
 				enemies.append(NPC(
 					"LWYG+Pursue",
 					100,
@@ -337,7 +330,7 @@ class GUI:
 			self.screen.get_width() // 2,
 			self.screen.get_height() // 2,
 		)
-		path = Path(pygame.Vector2(150,150)) # Crear un camino con punto inicial (Vector2)
+		path = Path(pygame.Vector2(150,150)) # Crear un camino rectangular con punto inicial (Vector2)
 		enemies, uses_rotation = self.set_enemy_algorithm(scenario_type, target=player, path=path) # Configurar NPCs segun escenario
 		dt = 0
 		while running:

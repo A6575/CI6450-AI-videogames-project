@@ -1,5 +1,6 @@
 # Configuracion de los personajes (NPC y Player)
 from imports.moves.kinematic import Kinematic, SteeringOutput
+from pygame import BLEND_RGBA_MULT
 from pygame.math import Vector2
 from pygame.image import load
 from pygame import K_LEFT, K_RIGHT, K_UP, K_DOWN
@@ -19,9 +20,43 @@ class Player:
 			rotation=0
 		)
 		
-		self.image = str(BASE_DIR / "assets" / "player.png") # Ruta a la imagen del personaje
-		self.sprite = load(self.image).convert_alpha()		 # Cargar la imagen del personaje
+		# Rutas a las imágenes de la animación del personaje
+		self.animation_images = [
+			str(BASE_DIR / "assets" / "player" / "bee-1.png"),
+			str(BASE_DIR / "assets" / "player" / "bee-2.png"),
+			str(BASE_DIR / "assets" / "player" / "bee-3.png"),
+			str(BASE_DIR / "assets" / "player" / "bee-4.png")
+		]
+		# Cargar las superficies de Pygame para cada imagen
+		self.animation_frames = [load(img).convert_alpha() for img in self.animation_images]
+		self.current_frame_index = 0 # Índice del fotograma actual
+		self.sprite = self.animation_frames[self.current_frame_index] # Sprite actual
+		self.sprite_size = (40, 40)						 	 # Tamaño del sprite del personaje
 
+		# --- Variables para el control de la animación ---
+		self.animation_timer = 0.0 # Temporizador para cambiar de fotograma
+		self.animation_speed = 0.1 # Tiempo en segundos que dura cada fotograma
+
+		# Crear una superficie para la sombra del mismo tamaño que el sprite original
+		self.shadow_surface = self.sprite.copy()
+		# Rellenar la superficie de la sombra con un color negro semi-transparente
+		self.shadow_surface.fill((0, 0, 0, 100), special_flags=BLEND_RGBA_MULT)
+
+	def update_animation(self, dt):
+		# Actualiza el temporizador de la animación
+		self.animation_timer += dt
+		
+		# Si el temporizador supera la velocidad de la animación, cambia al siguiente fotograma
+		if self.animation_timer >= self.animation_speed:
+			self.animation_timer = 0.0 # Reinicia el temporizador
+			# Avanza al siguiente fotograma, volviendo al inicio si llega al final
+			self.current_frame_index = (self.current_frame_index + 1) % len(self.animation_frames)
+			# Actualiza el sprite actual al nuevo fotograma
+			self.sprite = self.animation_frames[self.current_frame_index]
+			# Vuelve a generar la sombra para el nuevo sprite
+			self.shadow_surface = self.sprite.copy()
+			self.shadow_surface.fill((0, 0, 0, 100), special_flags=BLEND_RGBA_MULT)
+			
 	# Mover el personaje basado en la entrada del teclado
 	def move(self, keys, linear, dt, bounds=None, margin=(0, 0)):
 		if keys[K_LEFT]:

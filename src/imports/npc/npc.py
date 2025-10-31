@@ -1,6 +1,7 @@
 import math
 from pygame.image import load
 from pygame.math import Vector2
+from pygame import BLEND_RGBA_MULT
 from pathlib import Path
 from imports.moves.kinematic import Kinematic
 from imports.moves.switcher import SWITCHER_ALGORITHMS
@@ -21,9 +22,57 @@ class NPC:
 		self.algorithm_name = algorithm_name	# Nombre del algoritmo de movimiento
 		self.map_width = 800   # valores por defecto de tamaño del mapa
 		self.map_height = 600
-		self.image = str(BASE_DIR / "assets" / "enemy.png") # Ruta a la imagen del NPC
-		self.sprite = load(self.image).convert_alpha()		# Cargar la imagen del NPC
+		# Rutas a las imágenes de las animaciones del NPC
+		self.animation_paths = {
+			"walk": [
+				str(BASE_DIR / "assets" / "enemy" / "SpiderWalkingUp1.png"),
+				str(BASE_DIR / "assets" / "enemy" / "SpiderWalkingUp2.png"),
+				str(BASE_DIR / "assets" / "enemy" / "SpiderWalkingUp3.png"),
+				str(BASE_DIR / "assets" / "enemy" / "SpiderWalkingUp4.png"),
+			],
+			"idle": [
+				str(BASE_DIR / "assets" / "enemy" / "SpiderIdleUp1.png"),
+				str(BASE_DIR / "assets" / "enemy" / "SpiderIdleUp2.png"),
+				str(BASE_DIR / "assets" / "enemy" / "SpiderIdleUp3.png"),
+				str(BASE_DIR / "assets" / "enemy" / "SpiderIdleUp4.png"),
+			]
+		}
+		# Cargar las superficies de Pygame para cada animación
+		self.animations = {
+			"walk": [load(img).convert_alpha() for img in self.animation_paths["walk"]],
+			"idle": [load(img).convert_alpha() for img in self.animation_paths["idle"]]
+		}
+		
+		# --- Variables de control de animación ---
+		self.current_animation = "walk" # Animación actual, por defecto 'walk'
+		self.current_frame_index = 0 # Índice del fotograma actual
+		self.sprite = self.animations[self.current_animation][self.current_frame_index] # Sprite actual
+		self.sprite_size = (40, 40)
+		self.animation_timer = 0.0 # Temporizador para cambiar de fotograma
+		self.animation_speed = 0.1 # Tiempo en segundos que dura cada fotograma
 
+		# Crear una superficie para la sombra del mismo tamaño que el sprite original
+		self.shadow_surface = self.sprite.copy()
+		# Rellenar la superficie de la sombra con un color negro semi-transparente
+		self.shadow_surface.fill((0, 0, 0, 100), special_flags=BLEND_RGBA_MULT)
+	
+	def update_animation(self, dt):
+		# Actualiza el temporizador de la animación
+		self.animation_timer += dt
+		
+		# Si el temporizador supera la velocidad de la animación, cambia al siguiente fotograma
+		if self.animation_timer >= self.animation_speed:
+			self.animation_timer = 0.0 # Reinicia el temporizador
+			# Obtiene la lista de fotogramas de la animación actual
+			frames = self.animations[self.current_animation]
+			# Avanza al siguiente fotograma, volviendo al inicio si llega al final
+			self.current_frame_index = (self.current_frame_index + 1) % len(frames)
+			# Actualiza el sprite actual al nuevo fotograma
+			self.sprite = frames[self.current_frame_index]
+			# Vuelve a generar la sombra para el nuevo sprite
+			self.shadow_surface = self.sprite.copy()
+			self.shadow_surface.fill((0, 0, 0, 100), special_flags=BLEND_RGBA_MULT)
+		
 	def set_algorithm(self, **params):
 		# Configura el algoritmo de movimiento basado en el nombre y parámetros dados
 		alg = SWITCHER_ALGORITHMS.get(self.algorithm_name, None)

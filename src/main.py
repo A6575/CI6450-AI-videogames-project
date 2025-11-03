@@ -4,7 +4,7 @@ from game import Game
 if __name__ == "__main__":
 	game = Game()
 	game.run(
-		scenario_type="KinematicSeek"
+		scenario_type="PrioritySteering"
 	)
 	""" gui = GUI()
 	gui.run(

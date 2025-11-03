@@ -98,7 +98,7 @@ class NPC:
 			self.algorithm_instance = self.algorithm_class(**kwargs)
 		return self.algorithm_instance
 
-	def update_with_algorithm(self, dt, uses_rotation=False, teletransport=False):
+	def update_with_algorithm(self, dt, uses_rotation=False, bounds=None, margin=(0, 0)):
 		# Actualiza la posición y orientación del NPC usando el algoritmo de movimiento
 		alg = self._ensure_algorithm_instance()
 		if alg is None:
@@ -114,24 +114,15 @@ class NPC:
 			self.kinematic.position += steering.velocity * dt
 			self.kinematic.orientation += steering.rotation * dt
 		
-		if teletransport:
-			# Teletransportar al NPC si sale de los límites del mapa
-			if self.kinematic.position.x < -10:
-				self.kinematic.position.x = self.map_width
-			elif self.kinematic.position.x > self.map_width + 10:
-				self.kinematic.position.x = 0
-			if self.kinematic.position.y < -10:
-				self.kinematic.position.y = self.map_height
-			elif self.kinematic.position.y > self.map_height + 10:
-				self.kinematic.position.y = 0
-		else:
-			# delimitar a dentro de la pantalla
-			if self.kinematic.position.x < 0:
-				self.kinematic.position.x = 0
-			elif self.kinematic.position.x > self.map_width:
-				self.kinematic.position.x = self.map_width
+		if bounds:
+			# Determinar los límites mínimos y máximos para X e Y.
+			min_x, min_y = 0, 0
+			max_x, max_y = bounds[0], bounds[1]
 
-			if self.kinematic.position.y < 0:
-				self.kinematic.position.y = 0
-			elif self.kinematic.position.y > self.map_height:
-				self.kinematic.position.y = self.map_height
+			# Obtener el margen para el sprite.
+			half_w, half_h = margin if margin and len(margin) == 2 else (0, 0)
+
+			# Limitar la posición del personaje en el eje X.
+			self.kinematic.position.x = max(min_x + half_w, min(self.kinematic.position.x, max_x - half_w))
+			# Limitar la posición del personaje en el eje Y.
+			self.kinematic.position.y = max(min_y + half_h, min(self.kinematic.position.y, max_y - half_h))

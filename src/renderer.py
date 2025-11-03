@@ -52,7 +52,7 @@ class Renderer:
         self.screen.blit(rotated_sprite, rect)
 
         # Mostrar nombre arriba del personaje
-        name_surface = self.font.render(character.name, True, (255, 255, 255))
+        name_surface = self.font.render(character.name, True, (0, 0, 0))
         name_rect = name_surface.get_rect(center=(screen_pos_x, screen_pos_y - character.sprite_size[1] // 2 - 10))
         self.screen.blit(name_surface, name_rect)
 

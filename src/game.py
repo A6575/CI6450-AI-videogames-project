@@ -39,7 +39,12 @@ class Game:
             self.player.update_animation(dt)
             # Update enemies
             for enemy in self.enemies:
-                enemy.update_with_algorithm(dt, uses_rotation=self.uses_rotation)
+                enemy.update_with_algorithm(
+                    dt, 
+                    uses_rotation=self.uses_rotation,
+                    bounds=(self.map.width_pixels, self.map.height_pixels),
+                    margin=(enemy.sprite_size[0] / 2, enemy.sprite_size[1] / 2)
+                )
                 enemy.update_animation(dt)
 
             # Update camera

@@ -215,13 +215,7 @@
    <object id="1" x="0" y="0" width="16" height="16"/>
   </objectgroup>
  </tile>
- <tile id="174" type="tapav1">
-  <animation>
-   <frame tileid="174" duration="300"/>
-   <frame tileid="175" duration="300"/>
-   <frame tileid="176" duration="300"/>
-  </animation>
- </tile>
+ <tile id="174" type="tapav1"/>
  <tile id="192">
   <objectgroup draworder="index" id="2">
    <object id="1" x="0" y="0.222222">
@@ -261,13 +255,7 @@
    </object>
   </objectgroup>
  </tile>
- <tile id="204" type="tarrov1">
-  <animation>
-   <frame tileid="204" duration="300"/>
-   <frame tileid="205" duration="300"/>
-   <frame tileid="206" duration="300"/>
-  </animation>
- </tile>
+ <tile id="204" type="tarrov1"/>
  <tile id="260">
   <objectgroup draworder="index" id="3">
    <object id="8" x="0.222222" y="14.3333">
@@ -332,6 +320,16 @@
   </objectgroup>
  </tile>
  <tile id="377">
+  <objectgroup draworder="index" id="2">
+   <object id="1" x="0" y="0" width="16" height="16"/>
+  </objectgroup>
+ </tile>
+ <tile id="402">
+  <objectgroup draworder="index" id="2">
+   <object id="1" x="0" y="0" width="16" height="16"/>
+  </objectgroup>
+ </tile>
+ <tile id="404">
   <objectgroup draworder="index" id="2">
    <object id="1" x="0" y="0" width="16" height="16"/>
   </objectgroup>

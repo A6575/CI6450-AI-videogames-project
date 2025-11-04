@@ -55,10 +55,27 @@ class Renderer:
         name_surface = self.font.render(character.name, True, (0, 0, 0))
         name_rect = name_surface.get_rect(center=(screen_pos_x, screen_pos_y - character.sprite_size[1] // 2 - 10))
         self.screen.blit(name_surface, name_rect)
+    
+    def _draw_obstacles(self):
+        # Itera sobre todas las formas de colisión cargadas desde el mapa.
+        for shape_type, shape_data in self.game_map.obstacles:
+            if shape_type == 'rect':
+                # Si la forma es un rectángulo.
+                # Ajusta la posición del rectángulo a las coordenadas de la cámara.
+                screen_rect = shape_data.move(-self.camera.left, -self.camera.top)
+                # Dibuja el contorno del rectángulo en la pantalla.
+                pygame.draw.rect(self.screen, (255, 0, 0), screen_rect, 1)
+            elif shape_type == 'poly':
+                # Si la forma es un polígono.
+                # Ajusta las coordenadas de cada punto del polígono a la cámara.
+                screen_points = [(p[0] - self.camera.left, p[1] - self.camera.top) for p in shape_data]
+                # Dibuja el contorno del polígono en la pantalla.
+                pygame.draw.polygon(self.screen, (255, 0, 0), screen_points, 1)
 
     def draw(self, player, enemies):
         self.screen.fill((0, 0, 0)) # Black background
         self._draw_map()
+        self._draw_obstacles()
         self._draw_character(player)
         for enemy in enemies:
             self._draw_character(enemy)

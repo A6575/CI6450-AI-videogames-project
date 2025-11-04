@@ -48,6 +48,7 @@ class NPC:
 		self.current_frame_index = 0 # Índice del fotograma actual
 		self.sprite = self.animations[self.current_animation][self.current_frame_index] # Sprite actual
 		self.sprite_size = (40, 40)
+		self.rect = self.sprite.get_rect(center=(x, y))
 		self.animation_timer = 0.0 # Temporizador para cambiar de fotograma
 		self.animation_speed = 0.1 # Tiempo en segundos que dura cada fotograma
 
@@ -98,7 +99,7 @@ class NPC:
 			self.algorithm_instance = self.algorithm_class(**kwargs)
 		return self.algorithm_instance
 
-	def update_with_algorithm(self, dt, uses_rotation=False, bounds=None, margin=(0, 0)):
+	def update_with_algorithm(self, dt, uses_rotation=False, bounds=None, margin=(0, 0), obstacles=None):
 		# Actualiza la posición y orientación del NPC usando el algoritmo de movimiento
 		alg = self._ensure_algorithm_instance()
 		if alg is None:
@@ -108,7 +109,7 @@ class NPC:
 		if hasattr(steering, 'linear') and hasattr(steering, 'angular'):
 			# Si el steering es un SteeringOutput, acutualizar usando el método update
 			if steering.linear.length() > 0 or steering.angular != 0:
-				self.kinematic.update(steering, dt, 100, uses_rotation)
+				self.kinematic.update(steering, dt, self.rect, obstacles, 100, uses_rotation)
 		elif hasattr(steering, 'velocity') and hasattr(steering, 'rotation'):
 			# Si el steering es un KinematicSteeringOutput, actualizar directamente
 			self.kinematic.position += steering.velocity * dt

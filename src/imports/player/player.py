@@ -32,6 +32,7 @@ class Player:
 		self.current_frame_index = 0 # Índice del fotograma actual
 		self.sprite = self.animation_frames[self.current_frame_index] # Sprite actual
 		self.sprite_size = (40, 40)						 	 # Tamaño del sprite del personaje
+		self.rect = self.sprite.get_rect(center=(x, y))
 
 		# --- Variables para el control de la animación ---
 		self.animation_timer = 0.0 # Temporizador para cambiar de fotograma
@@ -41,7 +42,7 @@ class Player:
 		self.shadow_surface = self.sprite.copy()
 		# Rellenar la superficie de la sombra con un color negro semi-transparente
 		self.shadow_surface.fill((0, 0, 0, 100), special_flags=BLEND_RGBA_MULT)
-
+	
 	def update_animation(self, dt):
 		# Actualiza el temporizador de la animación
 		self.animation_timer += dt
@@ -58,7 +59,7 @@ class Player:
 			self.shadow_surface.fill((0, 0, 0, 100), special_flags=BLEND_RGBA_MULT)
 			
 	# Mover el personaje basado en la entrada del teclado
-	def move(self, keys, linear, dt, bounds=None, margin=(0, 0)):
+	def move(self, keys, linear, dt, bounds=None, margin=(0, 0), obstacles=None):
 		if keys[K_LEFT]:
 			linear.x -= 1
 		if keys[K_RIGHT]:
@@ -69,11 +70,10 @@ class Player:
 			linear.y += 1
 		if linear.length() > 0:
 			linear = linear.normalize() * 100 
-		
 		# Crear un SteeringOutput con la velocidad calculada 
 		steering = SteeringOutput(linear, 0)
-		
-		self.kinematic.update(steering, dt, 120)
+
+		self.kinematic.update(steering, dt, self.rect, obstacles, 120)
 
 		# Limitar movimiento a los bordes de la pantalla
 		if bounds:

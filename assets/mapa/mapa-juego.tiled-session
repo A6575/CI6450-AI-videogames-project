@@ -9,7 +9,7 @@
     ],
     "fileStates": {
         "Bienenkorb.tsx": {
-            "scaleInDock": 3,
+            "scaleInDock": 1.5,
             "scaleInEditor": 1.5
         },
         "C:/Users/Astrid/Bienenkorb.tsx": {
@@ -17,15 +17,15 @@
             "scaleInEditor": 1
         },
         "mapa.tmx": {
-            "scale": 0.75,
-            "selectedLayer": 2,
+            "scale": 0.5,
+            "selectedLayer": -1,
             "viewCenter": {
-                "x": 513.3333333333334,
-                "y": 376
+                "x": 880,
+                "y": 486
             }
         }
     },
-    "frame.defaultDuration": 300,
+    "frame.defaultDuration": 100,
     "last.externalTilesetPath": "E:/astrid/USB/Actual/IA para Juegos/mapa",
     "last.imagePath": "E:/astrid/USB/Actual/IA para Juegos/mapa",
     "map.height": 48,

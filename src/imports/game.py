@@ -52,7 +52,8 @@ class Game:
                 dt, 
                 bounds=(self.map.width_pixels, self.map.height_pixels), 
                 margin=(self.player.sprite_size[0] / 2, self.player.sprite_size[1] / 2),
-                obstacles=self.map.obstacles
+                obstacles=self.map.obstacles,
+                nav_polygons=self.nav_polygons
             )
             self.player.update_animation(dt)
             # Update enemies
@@ -62,7 +63,8 @@ class Game:
                     uses_rotation=self.uses_rotation,
                     bounds=(self.map.width_pixels, self.map.height_pixels),
                     margin=(enemy.sprite_size[0] / 2, enemy.sprite_size[1] / 2),
-                    obstacles=self.map.obstacles
+                    obstacles=self.map.obstacles,
+                    nav_polygons=self.nav_polygons
                 )
                 enemy.update_animation(dt)
 
@@ -71,8 +73,23 @@ class Game:
 
             # Render everything
             self.renderer.draw(self.player, self.enemies)
+            
             if show_nav_mesh:
-                draw_nav_mesh(self.screen, self.nav_nodes, self.nav_edges, self.nav_polygons, self.renderer.camera)
+                active_nodes = []
+                if self.player.current_node_id is not None:
+                    active_nodes.append(self.player.current_node_id)
+                for enemy in self.enemies:
+                    if enemy.current_node_id is not None:
+                        active_nodes.append(enemy.current_node_id)
+                
+                draw_nav_mesh(
+                    self.screen,
+                    self.nav_nodes,
+                    self.nav_edges,
+                    self.nav_polygons,
+                    self.renderer.camera,
+                    active_nodes=active_nodes
+                )
 
             pygame.display.flip()
             dt = self.clock.tick(60) / 1000

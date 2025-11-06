@@ -5,6 +5,7 @@ from pygame import BLEND_RGBA_MULT
 from pathlib import Path
 from imports.moves.kinematic import Kinematic
 from imports.moves.switcher import SWITCHER_ALGORITHMS
+from imports.nav_mesh import find_node_at_position
 
 # Directorio base para cargar recursos
 BASE_DIR = Path(__file__).resolve().parents[3]   # cuatro niveles arriba
@@ -56,6 +57,7 @@ class NPC:
 		self.shadow_surface = self.sprite.copy()
 		# Rellenar la superficie de la sombra con un color negro semi-transparente
 		self.shadow_surface.fill((0, 0, 0, 100), special_flags=BLEND_RGBA_MULT)
+		self.current_node_id = None
 	
 	def update_animation(self, dt):
 		# Actualiza el temporizador de la animación
@@ -99,7 +101,7 @@ class NPC:
 			self.algorithm_instance = self.algorithm_class(**kwargs)
 		return self.algorithm_instance
 
-	def update_with_algorithm(self, dt, uses_rotation=False, bounds=None, margin=(0, 0), obstacles=None):
+	def update_with_algorithm(self, dt, uses_rotation=False, bounds=None, margin=(0, 0), obstacles=None, nav_polygons=None):
 		# Actualiza la posición y orientación del NPC usando el algoritmo de movimiento
 		alg = self._ensure_algorithm_instance()
 		if alg is None:
@@ -114,6 +116,9 @@ class NPC:
 			# Si el steering es un KinematicSteeringOutput, actualizar directamente
 			self.kinematic.position += steering.velocity * dt
 			self.kinematic.orientation += steering.rotation * dt
+		
+		if nav_polygons:
+			self.current_node_id = find_node_at_position(self.rect.center, nav_polygons)
 		
 		if bounds:
 			# Determinar los límites mínimos y máximos para X e Y.

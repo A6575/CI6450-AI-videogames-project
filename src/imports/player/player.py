@@ -5,6 +5,7 @@ from pygame.math import Vector2
 from pygame.image import load
 from pygame import K_LEFT, K_RIGHT, K_UP, K_DOWN
 from pathlib import Path
+from imports.nav_mesh import find_node_at_position
 
 # Definir la ruta base para cargar imágenes
 BASE_DIR = Path(__file__).resolve().parents[3]   # cuatro niveles arriba
@@ -42,6 +43,7 @@ class Player:
 		self.shadow_surface = self.sprite.copy()
 		# Rellenar la superficie de la sombra con un color negro semi-transparente
 		self.shadow_surface.fill((0, 0, 0, 100), special_flags=BLEND_RGBA_MULT)
+		self.current_node_id = None
 	
 	def update_animation(self, dt):
 		# Actualiza el temporizador de la animación
@@ -59,7 +61,7 @@ class Player:
 			self.shadow_surface.fill((0, 0, 0, 100), special_flags=BLEND_RGBA_MULT)
 			
 	# Mover el personaje basado en la entrada del teclado
-	def move(self, keys, linear, dt, bounds=None, margin=(0, 0), obstacles=None):
+	def move(self, keys, linear, dt, bounds=None, margin=(0, 0), obstacles=None, nav_polygons=None):
 		if keys[K_LEFT]:
 			linear.x -= 1
 		if keys[K_RIGHT]:
@@ -74,6 +76,9 @@ class Player:
 		steering = SteeringOutput(linear, 0)
 
 		self.kinematic.update(steering, dt, self.rect, obstacles, 120)
+
+		if nav_polygons:
+			self.current_node_id = find_node_at_position(self.rect.center, nav_polygons)
 
 		# Limitar movimiento a los bordes de la pantalla
 		if bounds:

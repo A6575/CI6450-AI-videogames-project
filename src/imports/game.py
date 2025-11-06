@@ -4,7 +4,7 @@ from imports.renderer import Renderer
 from imports.map.mapa import Map
 from imports.player.player import Player
 from imports.scenario_factory import ScenarioFactory
-
+from imports.nav_mesh import load_nav_mesh, draw_nav_mesh
 class Game:
     def __init__(self):
         pygame.init()
@@ -23,16 +23,26 @@ class Game:
         self.enemies = []
         self.uses_rotation = False
 
+        try:
+            self.nav_nodes, self.nav_edges, self.nav_polygons = load_nav_mesh(self.map.tmx_data)
+        except ValueError as e:
+            print(e)
+            self.nav_nodes, self.nav_edges, self.nav_polygons = {}, [], {}
+
     def run(self, scenario_type):
         self.enemies, self.uses_rotation = self.scenario_factory.create_scenario(scenario_type, self.player, None)
         
         running = True
+        show_nav_mesh = False
         dt = 0
         while running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
-
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_g:
+                        show_nav_mesh = not show_nav_mesh
+                        print(f"Nav mesh display toggled to {'ON' if show_nav_mesh else 'OFF'}")
             # Update player
             keys = pygame.key.get_pressed()
             # Se pasa la lista de obstáculos al método de movimiento del jugador.
@@ -61,6 +71,8 @@ class Game:
 
             # Render everything
             self.renderer.draw(self.player, self.enemies)
+            if show_nav_mesh:
+                draw_nav_mesh(self.screen, self.nav_nodes, self.nav_edges, self.nav_polygons, self.renderer.camera)
 
             pygame.display.flip()
             dt = self.clock.tick(60) / 1000

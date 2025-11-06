@@ -1,9 +1,9 @@
 # Clase principal del juego que maneja la inicialización, el bucle principal y la integración de todos los componentes.
 import pygame
-from renderer import Renderer
-from mapa import Map
+from imports.renderer import Renderer
+from imports.map.mapa import Map
 from imports.player.player import Player
-from scenario_factory import ScenarioFactory
+from imports.scenario_factory import ScenarioFactory
 
 class Game:
     def __init__(self):

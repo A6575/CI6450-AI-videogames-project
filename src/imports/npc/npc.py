@@ -47,7 +47,7 @@ class NPC:
 		self.current_animation = "walk" # Animación actual, por defecto 'walk'
 		self.current_frame_index = 0 # Índice del fotograma actual
 		self.sprite = self.animations[self.current_animation][self.current_frame_index] # Sprite actual
-		self.sprite_size = (40, 40)
+		self.sprite_size = (35, 35)
 		self.rect = self.sprite.get_rect(center=(x, y))
 		self.animation_timer = 0.0 # Temporizador para cambiar de fotograma
 		self.animation_speed = 0.1 # Tiempo en segundos que dura cada fotograma

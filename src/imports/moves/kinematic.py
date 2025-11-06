@@ -1,6 +1,6 @@
 # Algoritmos de movimiento
 import math
-from pygame import Vector2
+from pygame import Vector2, Rect
 
 class KinematicSteeringOutput:
 	def __init__(self, velocity, rotation):
@@ -19,27 +19,52 @@ class Kinematic:
 		self.rotation = rotation 			# float
 
 	def update(self, steering, time, character_rect, obstacles, max_speed=float('inf'), uses_rotation=False):
+		last_safe_position = self.position.copy()
 		# Movimiento en el eje X
 		self.position.x += self.velocity.x * time
 		character_rect.centerx = int(self.position.x)
 		# Se comprueba si hay colisión después de mover en X.
-		if self._check_collision(character_rect, obstacles):
-			# Si hay colisión, se revierte el movimiento en X.
-			self.position.x -= self.velocity.x * time
-			# Se anula la velocidad en este eje para detener el movimiento en esta dirección.
-			self.velocity.x = 0
-			character_rect.centerx = int(self.position.x)
+		colliding_shape_type, colliding_shape_data = self._get_colliding_obstacle(character_rect, obstacles)
+		if colliding_shape_type:
+			# Si hay colisión, se resuelve.
+			if colliding_shape_type == 'rect' and isinstance(colliding_shape_data, Rect):
+				# Resolución para rectángulos válidos.
+				if self.velocity.x > 0: # Moviéndose a la derecha
+					character_rect.right = colliding_shape_data.left
+				elif self.velocity.x < 0: # Moviéndose a la izquierda
+					character_rect.left = colliding_shape_data.right
+				self.position.x = character_rect.centerx
+				self.velocity.x = 0
+			else:
+				# Resolución genérica (polígonos o datos inesperados): se revierte el movimiento en este eje.
+				self.position.x -= self.velocity.x * time
+				self.velocity.x = 0
+				character_rect.centerx = int(self.position.x)
 
 		# Movimiento en el eje Y
 		self.position.y += self.velocity.y * time
 		character_rect.centery = int(self.position.y)
 		# Se comprueba si hay colisión después de mover en Y.
-		if self._check_collision(character_rect, obstacles):
-			# Si hay colisión, se revierte el movimiento en Y.
-			self.position.y -= self.velocity.y * time
-			# Se anula la velocidad en este eje.
-			self.velocity.y = 0
-			character_rect.centery = int(self.position.y)
+		colliding_shape_type, colliding_shape_data = self._get_colliding_obstacle(character_rect, obstacles)
+		if colliding_shape_type:
+			# Si hay colisión, se resuelve.
+			if colliding_shape_type == 'rect' and isinstance(colliding_shape_data, Rect):
+				# Resolución para rectángulos válidos.
+				if self.velocity.y > 0: # Moviéndose hacia abajo
+					character_rect.bottom = colliding_shape_data.top
+				elif self.velocity.y < 0: # Moviéndose hacia arriba
+					character_rect.top = colliding_shape_data.bottom
+				self.position.y = character_rect.centery
+				self.velocity.y = 0
+			else:
+				# Resolución genérica (polígonos o datos inesperados): se revierte el movimiento en este eje.
+				self.position.y -= self.velocity.y * time
+				self.velocity.y = 0
+				character_rect.centery = int(self.position.y)
+		if self._get_colliding_obstacle(character_rect, obstacles)[0] is not None:
+			self.position = last_safe_position
+			self.velocity = Vector2(0, 0) # Detener completamente para evitar vibraciones.
+			character_rect.center = self.position
 
 		if uses_rotation:
 			self.orientation += self.rotation*time
@@ -50,6 +75,24 @@ class Kinematic:
 
 		if self.velocity.length() > max_speed:
 			self.velocity = self.velocity.normalize() * max_speed
+
+	def _get_colliding_obstacle(self, character_rect, obstacles):
+		if not obstacles:
+			return None, None
+		
+		for shape_type, shape_data in obstacles:
+			if shape_type == 'rect':
+				if character_rect.colliderect(shape_data):
+					return shape_type, shape_data
+			elif shape_type == 'poly':
+				# La colisión con polígonos es más compleja para el ajuste de posición,
+				# por ahora se usa clipline solo para detección simple.
+				if character_rect.clipline(shape_data[0], shape_data[1]) or \
+					character_rect.clipline(shape_data[1], shape_data[2]) or \
+					character_rect.clipline(shape_data[2], shape_data[0]):
+					
+					return shape_type, shape_data
+		return None, None
 
 	def _check_collision(self, character_rect, obstacles):
 		if not obstacles:

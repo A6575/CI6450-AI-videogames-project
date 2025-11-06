@@ -18,10 +18,10 @@
         },
         "mapa.tmx": {
             "scale": 0.5,
-            "selectedLayer": -1,
+            "selectedLayer": 3,
             "viewCenter": {
-                "x": 880,
-                "y": 486
+                "x": 1165,
+                "y": 674
             }
         }
     },

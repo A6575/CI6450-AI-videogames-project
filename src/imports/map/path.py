@@ -93,3 +93,52 @@ class Path:
 			"distance": closest_point.distance_to(position),
 			"path_direction": path_direction
 		}
+
+class AStarPath(Path):
+	def __init__(self, points):
+		super().__init__(None, rectangular=False)
+		self.points = points  # Lista de puntos (Vector2) que forman el camino
+	
+	def get_path(self):
+		return self.points
+	
+	def get_params(self, position):
+		path = self.get_path()
+		if not path:
+			return {
+				"closest_point": Vector2(0, 0),
+				"distance": float('inf'),
+				"path_direction": Vector2(0, 0)
+			}
+
+		# Encuentra el segmento de línea más cercano a la posición del personaje.
+		min_dist_sq = float('inf')
+		closest_segment_index = -1
+
+		for i in range(len(path) - 1):
+			p1 = path[i]
+			p2 = path[i+1]
+			l2 = p1.distance_squared_to(p2)
+			if l2 == 0:
+				dist_sq = position.distance_squared_to(p1)
+			else:
+				t = max(0, min(1, (position - p1).dot(p2 - p1) / l2))
+				projection = p1 + t * (p2 - p1)
+				dist_sq = position.distance_squared_to(projection)
+			
+			if dist_sq < min_dist_sq:
+				min_dist_sq = dist_sq
+				closest_segment_index = i
+
+		# Calcula la dirección del camino en el segmento más cercano.
+		p1 = path[closest_segment_index]
+		p2 = path[closest_segment_index + 1]
+		path_direction = (p2 - p1).normalize() if p1 != p2 else Vector2(0, 0)
+
+		# El "punto más cercano" para FollowPath es la propia posición del personaje,
+		# ya que el offset se calcula a partir de ahí a lo largo de la dirección del camino.
+		return {
+			"closest_point": position,
+			"distance": math.sqrt(min_dist_sq),
+			"path_direction": path_direction
+		}

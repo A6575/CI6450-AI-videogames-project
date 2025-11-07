@@ -5,7 +5,8 @@ from pygame import BLEND_RGBA_MULT
 from pathlib import Path
 from imports.moves.kinematic import Kinematic
 from imports.moves.switcher import SWITCHER_ALGORITHMS
-from imports.nav_mesh import find_node_at_position
+from imports.map.path import AStarPath
+from imports.moves.path_following import FollowPath
 
 # Directorio base para cargar recursos
 BASE_DIR = Path(__file__).resolve().parents[3]   # cuatro niveles arriba
@@ -58,7 +59,22 @@ class NPC:
 		# Rellenar la superficie de la sombra con un color negro semi-transparente
 		self.shadow_surface.fill((0, 0, 0, 100), special_flags=BLEND_RGBA_MULT)
 		self.current_node_id = None
-	
+	def follow_path_from_nodes(self, path_nodes, nav_mesh_nodes, explicit_target):
+		path_points = [Vector2(nav_mesh_nodes[node_id]) for node_id in path_nodes]
+
+		if len(path_points) < 2:
+			self.set_algorithm()
+			return
+		
+		astar_path_instance = AStarPath(path_points)
+
+		self.algorithm_name = "FollowPath"
+		self.set_algorithm(
+			path=astar_path_instance,
+			explicit_target=explicit_target,
+			path_offset=30.0
+		)
+		
 	def update_animation(self, dt):
 		# Actualiza el temporizador de la animación
 		self.animation_timer += dt
@@ -101,7 +117,7 @@ class NPC:
 			self.algorithm_instance = self.algorithm_class(**kwargs)
 		return self.algorithm_instance
 
-	def update_with_algorithm(self, dt, uses_rotation=False, bounds=None, margin=(0, 0), obstacles=None, nav_polygons=None):
+	def update_with_algorithm(self, dt, uses_rotation=False, bounds=None, margin=(0, 0), obstacles=None, nav_mesh=None):
 		# Actualiza la posición y orientación del NPC usando el algoritmo de movimiento
 		alg = self._ensure_algorithm_instance()
 		if alg is None:
@@ -117,8 +133,8 @@ class NPC:
 			self.kinematic.position += steering.velocity * dt
 			self.kinematic.orientation += steering.rotation * dt
 		
-		if nav_polygons:
-			self.current_node_id = find_node_at_position(self.rect.center, nav_polygons)
+		if nav_mesh:
+			self.current_node_id = nav_mesh.find_node_at_position(self.kinematic.position, self.current_node_id)
 		
 		if bounds:
 			# Determinar los límites mínimos y máximos para X e Y.

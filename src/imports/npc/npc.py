@@ -1,4 +1,5 @@
 import math
+import pygame
 from pygame.image import load
 from pygame.math import Vector2
 from pygame import BLEND_RGBA_MULT
@@ -15,6 +16,9 @@ class NPC:
 	def __init__(self, name, health, x, y, algorithm_name=""):
 		self.name = name				# Nombre del NPC
 		self.health = health			# Salud del NPC
+		self.is_hit = False
+		self.hit_timer = 0.0
+		self.hit_duration = 500
 		self.kinematic = Kinematic(		# Estado cinemático del NPC
 			position=Vector2(x, y),
 			velocity=Vector2(0, 0), 
@@ -60,6 +64,19 @@ class NPC:
 		self.shadow_surface.fill((0, 0, 0, 100), special_flags=BLEND_RGBA_MULT)
 		self.current_node_id = None
 
+	def take_damage(self, amount):
+		if not self.is_hit:
+			self.health -= amount
+			self.is_hit = True
+			self.hit_timer = pygame.time.get_ticks()
+			print(f"{self.name} fue golpeado y recibió {amount} de daño. Vida restante: {self.health}")
+			return self.health <= 0
+		return False
+	
+	def update(self, dt):
+		if self.is_hit and pygame.time.get_ticks() - self.hit_timer > self.hit_duration:
+			self.is_hit = False
+	
 	def follow_path_from_nodes(self, path_nodes, nav_mesh_nodes, explicit_target):
 		path_points = [Vector2(nav_mesh_nodes[node_id]) for node_id in path_nodes]
 
@@ -73,7 +90,7 @@ class NPC:
 		self.set_algorithm(
 			path=astar_path_instance,
 			explicit_target=explicit_target,
-			path_offset=10.0
+			path_offset=1.0
 		)
 		
 	def update_animation(self, dt):

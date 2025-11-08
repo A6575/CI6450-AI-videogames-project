@@ -9,6 +9,8 @@ class GameObject(pygame.sprite.Sprite):
 		super().__init__()
 		original_image = pygame.image.load(image_path).convert_alpha()
 		self.image = pygame.transform.scale(original_image, size)
+		self.shadow_surface = self.image.copy()
+		self.shadow_surface.fill((0, 0, 0, 100), special_flags=pygame.BLEND_RGBA_MULT)
 		self.initial_pos = (x, y)
 		self.rect = self.image.get_rect(center=self.initial_pos)
 		self.node_id = node_id
@@ -47,6 +49,7 @@ class SeedProjectile(pygame.sprite.Sprite):
 		self.velocity = direction_vector * 300
 		self.lifetime = 2000
 		self.spawn_time = pygame.time.get_ticks()
+		self.damage = 40
 
 	def update(self, dt):
 		self.rect.x += self.velocity.x * dt

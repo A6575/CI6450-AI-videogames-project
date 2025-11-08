@@ -8,25 +8,24 @@ class FollowPath:
 		self.path = path						# El camino a seguir (Path)
 		self.path_offset = path_offset			# El offset del camino
 		self.current_target_index = 0			# El índice del objetivo actual en el camino
-
-	def get_steering(self):
-		# calcular el punto mas cercano en el path
-		params = self.path.get_params(self.character.kinematic.position)
-		closest_point = params["closest_point"]
-
-		# aplicar offset del target en el camino y actualizar la posición del objetivo explícito
-		target_param = Vector2(closest_point.x + self.path_offset * params["path_direction"].x,
-										closest_point.y + self.path_offset * params["path_direction"].y)
-		# actualizar la posición del objetivo explícito
-		self.explicit_target.kinematic.position = target_param
-		# usar arrive para llegar al objetivo explícito
-		arrive = DynamicArrive(
+		self.current_param = 0.0				# El parámetro actual en el camino
+		self.arrive_behavior =  DynamicArrive(
 			character=self.character, 
 			target=self.explicit_target, 
 			max_acceleration=150,
 			max_speed=80,
-			target_radius=5.0,
-			slow_radius=6.0,
+			target_radius=2.0,
+			slow_radius=15.0,
 			time_to_target=0.1
 		)
-		return arrive.get_steering()
+
+	def get_steering(self):
+		# calcular el punto mas cercano en el path
+		character_param = self.path.get_param(self.character.kinematic.position)
+		target_param = character_param + self.path_offset
+		target_position = self.path.get_position(target_param)
+
+		# actualizar la posición del objetivo explícito
+		self.explicit_target.kinematic.position = target_position
+		
+		return self.arrive_behavior.get_steering()

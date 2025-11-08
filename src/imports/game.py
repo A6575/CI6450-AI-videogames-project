@@ -32,6 +32,8 @@ class Game:
         self.spider_webs = pygame.sprite.Group()
         self.projectiles = pygame.sprite.Group()
 
+        self.show_loading_screen("Cargando Navigation Mesh...")
+
         try:
             self.nav_mesh = NavMesh(self.map.tmx_data)
             self._spawn_objects()
@@ -39,6 +41,21 @@ class Game:
             print(e)
             self.nav_mesh = None
 
+    def show_loading_screen(self, message):
+        self.screen.fill((20, 20, 40))
+        # Configura la fuente para el mensaje.
+        font = pygame.font.SysFont('Arial', 30)
+        text_surface = font.render(message, True, (255, 255, 255))
+        
+        # Centra el texto en la pantalla.
+        text_rect = text_surface.get_rect(center=self.screen.get_rect().center)
+        
+        # Dibuja el texto en la pantalla.
+        self.screen.blit(text_surface, text_rect)
+        
+        # Actualiza la pantalla para que el mensaje sea visible.
+        pygame.display.flip()
+        
     def _spawn_objects(self):
         if not self.nav_mesh or not self.nav_mesh.nodes:
             return
@@ -92,12 +109,13 @@ class Game:
             # Itera sobre cada enemigo en la lista de enemigos.
             for enemy in self.enemies:
                 # Comprueba si el rectángulo del proyectil colisiona con el del enemigo.
-                if projectile.rect.colliderect(enemy.rect):
-                    # Si hay colisión, añade al enemigo a la lista de eliminación.
-                    enemies_to_remove.append(enemy)
+                if projectile.rect.colliderect(enemy.rect) and not enemy.is_hit:
                     # Elimina el proyectil del grupo.
                     projectile.kill()
                     print("¡Enemigo alcanzado!")
+                    if enemy.take_damage(projectile.damage):
+                        print(f"{enemy.name} ha sido derrotado.")
+                        enemies_to_remove.append(enemy)
                     # Rompe el bucle interno, ya que el proyectil ya impactó.
                     break
         
@@ -181,6 +199,7 @@ class Game:
                     nav_mesh=self.nav_mesh
                 )
                 enemy.update_animation(dt)
+                enemy.update(dt)
 
             # Update camera
             self.renderer.update_camera(self.player)
@@ -192,7 +211,8 @@ class Game:
                 self.honey_pots,
                 self.power_ups,
                 self.spider_webs,
-                self.projectiles
+                self.projectiles,
+                show_debug = show_nav_mesh
             )
             
             if show_nav_mesh and self.nav_mesh:

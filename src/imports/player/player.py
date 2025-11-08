@@ -50,15 +50,19 @@ class Player:
 		self.is_powered_up = False
 		self.power_up_timer = 0
 		self.original_speed = 120
-
+		self.aura_blinking = False
 		self.attack_cooldown = 500
 		self.last_attack_time = 0
 	
 	def update(self, dt):
 		if self.is_powered_up:
 			self.power_up_timer -= dt * 1000
+			if self.power_up_timer <= 2000:
+				self.aura_blinking =  True
+			
 			if self.power_up_timer <= 0:
 				self.is_powered_up = False
+				self.aura_blinking = False
 				print("Power-up desactivado!")
 
 	def update_animation(self, dt):
@@ -79,6 +83,7 @@ class Player:
 	def activate_power_up(self, duration):
 		self.is_powered_up = True
 		self.power_up_timer = duration
+		self.aura_blinking = False
 		print("Power-up activado!")
 	
 	def attack(self):

@@ -27,6 +27,28 @@ class Renderer:
                                                   y * self.game_map.tmx_data.tileheight - self.camera.top))
 
     def _draw_character(self, character):
+        if hasattr(character, 'is_hit') and character.is_hit:
+            # Si el personaje está en estado "hit", parpadea no dibujándolo en frames alternos.
+            if (pygame.time.get_ticks() // 100) % 2 == 0:
+                return
+        
+        if hasattr(character, 'is_powered_up') and character.is_powered_up:
+            if not character.aura_blinking or (pygame.time.get_ticks() // 200) % 2 == 0:
+                aura_radius = character.sprite_size[0] * 0.7
+                aura_color = (255, 0, 223)
+
+                aura_surface = pygame.Surface((aura_radius * 2, aura_radius * 2), pygame.SRCALPHA)
+
+                pygame.draw.circle(aura_surface, aura_color, (aura_radius, aura_radius), aura_radius)
+
+                aura_surface.set_alpha(90)
+
+                aura_pos_x = character.kinematic.position.x - self.camera.left
+                aura_pos_y = character.kinematic.position.y - self.camera.top
+                aura_rect = aura_surface.get_rect(center=(aura_pos_x, aura_pos_y))
+
+                self.screen.blit(aura_surface, aura_rect)
+
         # Escalar la sombra y rotarla
         shadow_scaled = pygame.transform.scale(character.shadow_surface, character.sprite_size)
         rotated_shadow = pygame.transform.rotate(shadow_scaled, character.kinematic.orientation)
@@ -80,11 +102,17 @@ class Renderer:
 
         if honey_pots:
             for pot in honey_pots:
+                shadow_offset = (3, 3)
+                shadow_rect = pot.rect.move(-self.camera.left + shadow_offset[0], -self.camera.top + shadow_offset[1])
+                self.screen.blit(pot.shadow_surface, shadow_rect)
                 screen_rect = pot.rect.move(-self.camera.left, -self.camera.top)
                 self.screen.blit(pot.image, screen_rect)
 
         if power_ups:
             for power_up in power_ups:
+                shadow_offset = (3, 3)
+                shadow_rect = power_up.rect.move(-self.camera.left + shadow_offset[0], -self.camera.top + shadow_offset[1])
+                self.screen.blit(power_up.shadow_surface, shadow_rect)
                 screen_rect = power_up.rect.move(-self.camera.left, -self.camera.top)
                 self.screen.blit(power_up.image, screen_rect)
 
@@ -93,10 +121,11 @@ class Renderer:
                 screen_rect = projectile.rect.move(-self.camera.left, -self.camera.top)
                 self.screen.blit(projectile.image, screen_rect)
 
-    def draw(self, player, enemies, honey_pots=None, power_ups=None, spider_webs=None, projectiles=None):
+    def draw(self, player, enemies, honey_pots=None, power_ups=None, spider_webs=None, projectiles=None, show_debug=False):
         self.screen.fill((0, 0, 0)) # Black background
         self._draw_map()
-        self._draw_obstacles()
+        if show_debug:
+            self._draw_obstacles()
         self._draw_objects(honey_pots, power_ups, spider_webs, projectiles)
         self._draw_character(player)
         for enemy in enemies:

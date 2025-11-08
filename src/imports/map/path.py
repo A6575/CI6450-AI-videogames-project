@@ -104,23 +104,26 @@ class AStarPath(Path):
 	
 	def get_params(self, position):
 		path = self.get_path()
-		if not path:
+		if not path or len(path) < 2:
 			return {
 				"closest_point": Vector2(0, 0),
-				"distance": float('inf'),
+				"segment_index": 0,
 				"path_direction": Vector2(0, 0)
 			}
 
 		# Encuentra el segmento de línea más cercano a la posición del personaje.
 		min_dist_sq = float('inf')
 		closest_segment_index = -1
+		closest_projection = None
 
 		for i in range(len(path) - 1):
 			p1 = path[i]
 			p2 = path[i+1]
 			l2 = p1.distance_squared_to(p2)
+
 			if l2 == 0:
 				dist_sq = position.distance_squared_to(p1)
+				projection = p1
 			else:
 				t = max(0, min(1, (position - p1).dot(p2 - p1) / l2))
 				projection = p1 + t * (p2 - p1)
@@ -129,6 +132,7 @@ class AStarPath(Path):
 			if dist_sq < min_dist_sq:
 				min_dist_sq = dist_sq
 				closest_segment_index = i
+				closest_projection = projection
 
 		# Calcula la dirección del camino en el segmento más cercano.
 		p1 = path[closest_segment_index]
@@ -138,7 +142,41 @@ class AStarPath(Path):
 		# El "punto más cercano" para FollowPath es la propia posición del personaje,
 		# ya que el offset se calcula a partir de ahí a lo largo de la dirección del camino.
 		return {
-			"closest_point": position,
-			"distance": math.sqrt(min_dist_sq),
+			"closest_point": closest_projection,
+			"segment_index": closest_segment_index,
 			"path_direction": path_direction
 		}
+	
+	def get_param(self, position):
+		params = self.get_params(position)
+		segment_index = params['segment_index']
+		closest_point_on_path = params['closest_point']
+
+		dist_to_segment = 0.0
+		for i in range(segment_index):
+			dist_to_segment += self.points[i].distance_to(self.points[i+1])
+
+		dist_on_segment = self.points[segment_index].distance_to(closest_point_on_path)
+		param = float(segment_index)
+		segment_length = self.points[segment_index].distance_to(self.points[segment_index+1])
+		if segment_length > 0:
+			proportion_in_segment = dist_on_segment / segment_length
+			param += proportion_in_segment
+		
+		return param
+	
+	def get_position(self, param):
+		if param < 0:
+			param  = 0
+		
+		segment_index = int(param)
+
+		t = param - segment_index
+
+		if segment_index >= len(self.points) - 1:
+			return self.points[-1]
+		
+		p0 = self.points[segment_index]
+		p1 = self.points[segment_index + 1]
+
+		return p0.lerp(p1, t)

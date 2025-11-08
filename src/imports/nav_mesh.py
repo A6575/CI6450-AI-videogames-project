@@ -1,14 +1,45 @@
 from shapely.geometry import Polygon, Point
 import pygame
 from collections import deque
-
+import pickle
+import os
+from pathlib import Path
 class NavMesh:
 	def __init__(self, mapa_tmx):
 		self.nav_polygons = {}
 		self.nodes = {}
 		self.edges = []
 		self.graph = {}
-		self.load_nav_mesh(mapa_tmx)
+		project_root = Path(__file__).resolve().parents[2]
+		cache_path = project_root / "src" / "database" / "nav_mesh.cache"
+		
+		if os.path.exists(cache_path):
+			print("Cargando navegación desde caché...")
+			self.load_from_cache(cache_path)
+		else:
+			print("Generando NavMesh y creando cache...")
+			self.load_nav_mesh(mapa_tmx)
+			self.save_to_cache(cache_path)
+	
+	def save_to_cache(self, path):
+		path.parent.mkdir(parents=True, exist_ok=True)
+		cache_data = {
+			'polygons': self.nav_polygons,
+			'nodes': self.nodes,
+			'edges': self.edges,
+			'graph': self.graph
+		}
+		with open(path, 'wb') as f:
+			pickle.dump(cache_data, f)
+		print(f"NavMesh guardada en el cache: {path}")
+	def load_from_cache(self, path):
+		with open(path, 'rb') as f:
+			cache_data = pickle.load(f)
+		self.nav_polygons = cache_data['polygons']
+		self.nodes = cache_data['nodes']
+		self.edges = cache_data['edges']
+		self.graph = cache_data['graph']
+		print("NavMesh cargada exitosamente desde el cache")
 
 	def load_nav_mesh(self, mapa_tmx):
 		for layer in mapa_tmx.layers:

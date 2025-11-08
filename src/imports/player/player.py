@@ -1,8 +1,10 @@
 # Configuracion de los personajes (NPC y Player)
+import math
 from imports.moves.kinematic import Kinematic, SteeringOutput
 from pygame import BLEND_RGBA_MULT
 from pygame.math import Vector2
 from pygame.image import load
+from pygame.time import get_ticks
 from pygame import K_LEFT, K_RIGHT, K_UP, K_DOWN
 from pathlib import Path
 
@@ -43,7 +45,22 @@ class Player:
 		# Rellenar la superficie de la sombra con un color negro semi-transparente
 		self.shadow_surface.fill((0, 0, 0, 100), special_flags=BLEND_RGBA_MULT)
 		self.current_node_id = None
+
+		self.honey_collected = 0
+		self.is_powered_up = False
+		self.power_up_timer = 0
+		self.original_speed = 120
+
+		self.attack_cooldown = 500
+		self.last_attack_time = 0
 	
+	def update(self, dt):
+		if self.is_powered_up:
+			self.power_up_timer -= dt * 1000
+			if self.power_up_timer <= 0:
+				self.is_powered_up = False
+				print("Power-up desactivado!")
+
 	def update_animation(self, dt):
 		# Actualiza el temporizador de la animación
 		self.animation_timer += dt
@@ -58,9 +75,28 @@ class Player:
 			# Vuelve a generar la sombra para el nuevo sprite
 			self.shadow_surface = self.sprite.copy()
 			self.shadow_surface.fill((0, 0, 0, 100), special_flags=BLEND_RGBA_MULT)
+	
+	def activate_power_up(self, duration):
+		self.is_powered_up = True
+		self.power_up_timer = duration
+		print("Power-up activado!")
+	
+	def attack(self):
+		current_time = get_ticks()
+		if self.is_powered_up and current_time - self.last_attack_time > self.attack_cooldown:
+			self.last_attack_time = current_time
+			print("Ataque realizado!")
+			angle_rad = math.radians(self.kinematic.orientation)
+			direction = Vector2(-math.sin(angle_rad), -math.cos(angle_rad)).normalize()
 			
+			# Devuelve la posición de inicio y la dirección para crear el proyectil.
+			return (self.rect.center, direction)
+		
+		# Si no se puede atacar, devuelve None.
+		return None
+
 	# Mover el personaje basado en la entrada del teclado
-	def move(self, keys, linear, dt, bounds=None, margin=(0, 0), obstacles=None, nav_mesh=None):
+	def move(self, keys, linear, dt, bounds=None, margin=(0, 0), obstacles=None, nav_mesh=None, spider_webs=None):
 		if keys[K_LEFT]:
 			linear.x -= 1
 		if keys[K_RIGHT]:
@@ -73,8 +109,15 @@ class Player:
 			linear = linear.normalize() * 100 
 		# Crear un SteeringOutput con la velocidad calculada 
 		steering = SteeringOutput(linear, 0)
-
-		self.kinematic.update(steering, dt, self.rect, obstacles, 120)
+		
+		self.original_speed = 120
+		if spider_webs:
+			for web in spider_webs.sprites():
+				if self.rect.colliderect(web.rect):
+					self.original_speed *= 0.5
+					break
+		
+		self.kinematic.update(steering, dt, self.rect, obstacles, self.original_speed)
 
 		if nav_mesh:
 			self.current_node_id = nav_mesh.find_node_at_position(self.kinematic.position, self.current_node_id)

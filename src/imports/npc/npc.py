@@ -59,6 +59,7 @@ class NPC:
 		# Rellenar la superficie de la sombra con un color negro semi-transparente
 		self.shadow_surface.fill((0, 0, 0, 100), special_flags=BLEND_RGBA_MULT)
 		self.current_node_id = None
+
 	def follow_path_from_nodes(self, path_nodes, nav_mesh_nodes, explicit_target):
 		path_points = [Vector2(nav_mesh_nodes[node_id]) for node_id in path_nodes]
 
@@ -72,7 +73,7 @@ class NPC:
 		self.set_algorithm(
 			path=astar_path_instance,
 			explicit_target=explicit_target,
-			path_offset=30.0
+			path_offset=10.0
 		)
 		
 	def update_animation(self, dt):

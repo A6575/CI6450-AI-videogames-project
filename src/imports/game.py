@@ -1,11 +1,13 @@
 # Clase principal del juego que maneja la inicialización, el bucle principal y la integración de todos los componentes.
 import pygame
+import random
 from imports.renderer import Renderer
 from imports.map.mapa import Map
 from imports.player.player import Player
 from imports.scenario_factory import ScenarioFactory
 from imports.pathfinding.a_star import a_star_search, draw_path
 from imports.nav_mesh import NavMesh
+from imports.objects.game_obj import HoneyPot, PowerUp, SpiderWeb, SeedProjectile
 class Game:
     def __init__(self):
         pygame.init()
@@ -25,12 +27,84 @@ class Game:
         self.uses_rotation = False
         self.test_path = []
 
+        self.honey_pots = pygame.sprite.Group()
+        self.power_ups = pygame.sprite.Group()
+        self.spider_webs = pygame.sprite.Group()
+        self.projectiles = pygame.sprite.Group()
+
         try:
             self.nav_mesh = NavMesh(self.map.tmx_data)
+            self._spawn_objects()
         except ValueError as e:
             print(e)
             self.nav_mesh = None
 
+    def _spawn_objects(self):
+        if not self.nav_mesh or not self.nav_mesh.nodes:
+            return
+        
+        possible_node_ids = list(self.nav_mesh.nodes.keys())
+        random.shuffle(possible_node_ids)
+
+        num_honey_pots = 10
+        for _ in range(num_honey_pots):
+            if not possible_node_ids:
+                break
+
+            node_id = possible_node_ids.pop()
+            node_coords = self.nav_mesh.nodes[node_id]
+
+            on_web = random.random() < 0.30
+
+            pot = HoneyPot(node_coords[0], node_coords[1], node_id, on_web)
+            self.honey_pots.add(pot)
+
+            if on_web:
+                web = SpiderWeb(node_coords[0], node_coords[1], node_id)
+                self.spider_webs.add(web)
+        
+        num_power_ups = 3
+        for _ in range(num_power_ups):
+            if not possible_node_ids:
+                break
+            
+            node_id = possible_node_ids.pop()
+            node_coords = self.nav_mesh.nodes[node_id]
+            power_up = PowerUp(node_coords[0], node_coords[1], node_id)
+            self.power_ups.add(power_up)
+    
+    def _handle_collisions(self):
+        for pot in self.honey_pots.sprites():
+            if self.player.rect.colliderect(pot.rect):
+                self.player.honey_collected +=1
+                print(f"Miel recolectada! Total: {self.player.honey_collected}")
+                pot.kill()
+        
+        for power_up in self.power_ups.sprites():
+            if self.player.rect.colliderect(power_up.rect):
+                self.player.activate_power_up(power_up.duration)
+                print("¡Poder recogido!")
+                power_up.kill()
+
+        enemies_to_remove = []
+
+        for projectile in self.projectiles:
+            # Itera sobre cada enemigo en la lista de enemigos.
+            for enemy in self.enemies:
+                # Comprueba si el rectángulo del proyectil colisiona con el del enemigo.
+                if projectile.rect.colliderect(enemy.rect):
+                    # Si hay colisión, añade al enemigo a la lista de eliminación.
+                    enemies_to_remove.append(enemy)
+                    # Elimina el proyectil del grupo.
+                    projectile.kill()
+                    print("¡Enemigo alcanzado!")
+                    # Rompe el bucle interno, ya que el proyectil ya impactó.
+                    break
+        
+        # Elimina a los enemigos alcanzados de la lista principal de enemigos.
+        if enemies_to_remove:
+            self.enemies = [enemy for enemy in self.enemies if enemy not in enemies_to_remove]
+    
     def run(self, scenario_type):
         self.enemies, self.uses_rotation = self.scenario_factory.create_scenario(scenario_type, self.player, None)
         
@@ -45,6 +119,11 @@ class Game:
                     if event.key == pygame.K_g:
                         show_nav_mesh = not show_nav_mesh
                         print(f"Nav mesh display toggled to {'ON' if show_nav_mesh else 'OFF'}")
+                    elif event.key == pygame.K_SPACE:
+                        attack_data = self.player.attack()
+                        if attack_data:
+                            start_pos, direction = attack_data
+                            self.projectiles.add(SeedProjectile(start_pos[0], start_pos[1], direction))
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == 1 and self.enemies and self.nav_mesh:  # Left click
                         mouse_pos = pygame.mouse.get_pos()
@@ -69,6 +148,11 @@ class Game:
                             else:
                                 print("No path found between the selected nodes.")
                                 self.test_path = []
+
+            self.honey_pots.update(dt)
+            self.power_ups.update(dt)
+            self.spider_webs.update(dt)
+            self.projectiles.update(dt)
             # Update player
             keys = pygame.key.get_pressed()
             # Se pasa la lista de obstáculos al método de movimiento del jugador.
@@ -79,9 +163,13 @@ class Game:
                 bounds=(self.map.width_pixels, self.map.height_pixels), 
                 margin=(self.player.sprite_size[0] / 2, self.player.sprite_size[1] / 2),
                 obstacles=self.map.obstacles,
-                nav_mesh=self.nav_mesh
+                nav_mesh=self.nav_mesh,
+                spider_webs=self.spider_webs
             )
             self.player.update_animation(dt)
+            self.player.update(dt)
+
+            self._handle_collisions()
             # Update enemies
             for enemy in self.enemies:
                 enemy.update_with_algorithm(
@@ -98,7 +186,14 @@ class Game:
             self.renderer.update_camera(self.player)
 
             # Render everything
-            self.renderer.draw(self.player, self.enemies)
+            self.renderer.draw(
+                self.player, 
+                self.enemies,
+                self.honey_pots,
+                self.power_ups,
+                self.spider_webs,
+                self.projectiles
+            )
             
             if show_nav_mesh and self.nav_mesh:
                 active_nodes = []

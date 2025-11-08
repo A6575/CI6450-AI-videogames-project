@@ -72,10 +72,32 @@ class Renderer:
                 # Dibuja el contorno del polígono en la pantalla.
                 pygame.draw.polygon(self.screen, (255, 0, 0), screen_points, 1)
 
-    def draw(self, player, enemies):
+    def _draw_objects(self, honey_pots, power_ups, spider_webs, projectiles):
+        if spider_webs:
+            for web in spider_webs:
+                screen_rect = web.rect.move(-self.camera.left, -self.camera.top)
+                self.screen.blit(web.image, screen_rect)
+
+        if honey_pots:
+            for pot in honey_pots:
+                screen_rect = pot.rect.move(-self.camera.left, -self.camera.top)
+                self.screen.blit(pot.image, screen_rect)
+
+        if power_ups:
+            for power_up in power_ups:
+                screen_rect = power_up.rect.move(-self.camera.left, -self.camera.top)
+                self.screen.blit(power_up.image, screen_rect)
+
+        if projectiles:
+            for projectile in projectiles:
+                screen_rect = projectile.rect.move(-self.camera.left, -self.camera.top)
+                self.screen.blit(projectile.image, screen_rect)
+
+    def draw(self, player, enemies, honey_pots=None, power_ups=None, spider_webs=None, projectiles=None):
         self.screen.fill((0, 0, 0)) # Black background
         self._draw_map()
         self._draw_obstacles()
+        self._draw_objects(honey_pots, power_ups, spider_webs, projectiles)
         self._draw_character(player)
         for enemy in enemies:
             self._draw_character(enemy)

@@ -8,6 +8,8 @@ from imports.scenario_factory import ScenarioFactory
 from imports.pathfinding.a_star import a_star_search, draw_path
 from imports.nav_mesh import NavMesh
 from imports.objects.game_obj import HoneyPot, PowerUp, SpiderWeb, SeedProjectile
+from imports.npc.hsm_data import build_tejedora_hsm, build_cazadora_hsm, build_criadora_hsm
+from imports.npc.npc import NPC
 class Game:
     def __init__(self):
         pygame.init()
@@ -30,7 +32,8 @@ class Game:
         self.honey_pots = pygame.sprite.Group()
         self.power_ups = pygame.sprite.Group()
         self.spider_webs = pygame.sprite.Group()
-        self.projectiles = pygame.sprite.Group()
+        self.seed_projectiles = pygame.sprite.Group()
+        self.spider_projectiles = pygame.sprite.Group()
 
         self.show_loading_screen("Cargando Navigation Mesh...")
 
@@ -40,6 +43,27 @@ class Game:
         except ValueError as e:
             print(e)
             self.nav_mesh = None
+        
+        
+    def spawn_enemy(self, enemy_type, x, y):
+        enemy = None
+        if enemy_type == "Tejedora":
+            enemy = NPC("Tejedora", 100, x, y, algorithm_name="")
+            enemy.current_node_id = self.nav_mesh.find_node_at_position(enemy.kinematic.position, enemy.current_node_id)#type:ignore
+            enemy.init_hsm(build_tejedora_hsm, self)
+        elif enemy_type == "Cazadora":
+            enemy = NPC("Cazadora", 100, x, y, algorithm_name="")
+            enemy.current_node_id = self.nav_mesh.find_node_at_position(enemy.kinematic.position, enemy.current_node_id)#type:ignore
+            enemy.init_hsm(build_cazadora_hsm, self)
+        elif enemy_type == "Criadora":
+            enemy = NPC("Criadora", 100, x, y, algorithm_name="")
+            enemy.current_node_id = self.nav_mesh.find_node_at_position(enemy.kinematic.position, enemy.current_node_id)#type:ignore
+            enemy.init_hsm(build_criadora_hsm, self)
+        else:
+            self.enemies, self.uses_rotation = self.scenario_factory.create_scenario("DynamicArrive", self.player, None)
+        
+        if enemy and self.nav_mesh:
+            self.enemies.append(enemy)
 
     def show_loading_screen(self, message):
         self.screen.fill((20, 20, 40))
@@ -77,7 +101,7 @@ class Game:
             self.honey_pots.add(pot)
 
             if on_web:
-                web = SpiderWeb(node_coords[0], node_coords[1], node_id)
+                web = SpiderWeb(node_coords[0], node_coords[1], node_id, has_pot=True)
                 self.spider_webs.add(web)
         
         num_power_ups = 3
@@ -94,6 +118,11 @@ class Game:
         for pot in self.honey_pots.sprites():
             if self.player.rect.colliderect(pot.rect):
                 self.player.honey_collected +=1
+                if pot.on_web:
+                    for web in self.spider_webs.sprites():
+                        if web.has_pot and web.rect.colliderect(pot.rect):
+                            web.has_pot = False
+                            break
                 print(f"Miel recolectada! Total: {self.player.honey_collected}")
                 pot.kill()
         
@@ -105,7 +134,7 @@ class Game:
 
         enemies_to_remove = []
 
-        for projectile in self.projectiles:
+        for projectile in self.seed_projectiles:
             # Itera sobre cada enemigo en la lista de enemigos.
             for enemy in self.enemies:
                 # Comprueba si el rectángulo del proyectil colisiona con el del enemigo.
@@ -124,7 +153,7 @@ class Game:
             self.enemies = [enemy for enemy in self.enemies if enemy not in enemies_to_remove]
     
     def run(self, scenario_type):
-        self.enemies, self.uses_rotation = self.scenario_factory.create_scenario(scenario_type, self.player, None)
+        self.spawn_enemy("Criadora", 50, 100)
         
         running = True
         show_nav_mesh = False
@@ -141,7 +170,7 @@ class Game:
                         attack_data = self.player.attack()
                         if attack_data:
                             start_pos, direction = attack_data
-                            self.projectiles.add(SeedProjectile(start_pos[0], start_pos[1], direction))
+                            self.seed_projectiles.add(SeedProjectile(start_pos[0], start_pos[1], direction))
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == 1 and self.enemies and self.nav_mesh:  # Left click
                         mouse_pos = pygame.mouse.get_pos()
@@ -170,7 +199,8 @@ class Game:
             self.honey_pots.update(dt)
             self.power_ups.update(dt)
             self.spider_webs.update(dt)
-            self.projectiles.update(dt)
+            self.seed_projectiles.update(dt)
+            self.spider_projectiles.update(dt)
             # Update player
             keys = pygame.key.get_pressed()
             # Se pasa la lista de obstáculos al método de movimiento del jugador.
@@ -190,14 +220,15 @@ class Game:
             self._handle_collisions()
             # Update enemies
             for enemy in self.enemies:
-                enemy.update_with_algorithm(
-                    dt, 
-                    uses_rotation=self.uses_rotation,
-                    bounds=(self.map.width_pixels, self.map.height_pixels),
-                    margin=(enemy.sprite_size[0] / 2, enemy.sprite_size[1] / 2),
-                    obstacles=self.map.obstacles,
-                    nav_mesh=self.nav_mesh
-                )
+                if enemy.name == "DynamicArrive":
+                    enemy.update_with_algorithm(
+                        dt,
+                        uses_rotation=self.uses_rotation,
+                        bounds=(self.map.width_pixels, self.map.height_pixels),
+                        margin=(enemy.sprite_size[0] // 2, enemy.sprite_size[1] // 2),
+                        obstacles=self.map.obstacles,
+                        nav_mesh=self.nav_mesh
+                    )
                 enemy.update_animation(dt)
                 enemy.update(dt)
 
@@ -211,7 +242,8 @@ class Game:
                 self.honey_pots,
                 self.power_ups,
                 self.spider_webs,
-                self.projectiles,
+                self.seed_projectiles,
+                self.spider_projectiles,
                 show_debug = show_nav_mesh
             )
             

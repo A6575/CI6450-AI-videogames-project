@@ -1,4 +1,4 @@
-import math
+import time
 import pygame
 from pygame.image import load
 from pygame.math import Vector2
@@ -8,6 +8,8 @@ from imports.moves.kinematic import Kinematic
 from imports.moves.switcher import SWITCHER_ALGORITHMS
 from imports.map.path import AStarPath
 from imports.moves.path_following import FollowPath
+from imports.npc.hsm_data import Context as HSMContext
+from imports.objects.game_obj import SpiderProjectile
 
 # Directorio base para cargar recursos
 BASE_DIR = Path(__file__).resolve().parents[3]   # cuatro niveles arriba
@@ -26,6 +28,9 @@ class NPC:
 			rotation=0
 		)
 		self.algorithm_name = algorithm_name	# Nombre del algoritmo de movimiento
+		self.algorithm_class = None
+		self.algorithm_params = {}
+		self.algorithm_instance = None
 		self.map_width = 800   # valores por defecto de tamaño del mapa
 		self.map_height = 600
 		# Rutas a las imágenes de las animaciones del NPC
@@ -63,6 +68,64 @@ class NPC:
 		# Rellenar la superficie de la sombra con un color negro semi-transparente
 		self.shadow_surface.fill((0, 0, 0, 100), special_flags=BLEND_RGBA_MULT)
 		self.current_node_id = None
+		self.hsm = None
+		self.hsm_goal = None
+		self._alert_started_at =  0.0
+		self.attack_cooldown = 3.0
+		self._last_attack_time = 0.0
+		self._steal_in_progress = False
+		self._steal_started_at = None
+		self._has_stolen = False
+		self._flee_started_at = None
+		self._flee_duration = 0.0
+		self._egg_laid = False
+		self._egg_lay_started_at = None
+		self._egg_lay_duration = 0.0
+
+	def init_hsm(self, hsm_builder, game_world):
+		ctx = HSMContext(self, game_world)
+		self.hsm = hsm_builder(ctx)
+	
+	def emit_hsm_event(self, event: str):
+		if self.hsm:
+			return self.hsm.handle_event(event)
+		return False
+	
+	def perform_throw_net(self, world):
+		now = time.time()
+		if now - self._last_attack_time < self.attack_cooldown:
+			return False
+		target = None
+		if world and hasattr(world, 'player') and getattr(world.player, 'kinematic', None):
+			target_pos = world.player.kinematic.position
+			target = (target_pos.x, target_pos.y)
+		
+		if not target:
+			return False
+		
+		pos = self.kinematic.position
+		origin =  Vector2(pos.x, pos.y)
+		target = Vector2(target)
+		dir_vec = (target - origin)
+		
+		if dir_vec.length() == 0:
+			dir_vec = Vector2(1, 0)
+		else:
+			dir_vec = dir_vec.normalize()
+		
+		proj = SpiderProjectile(origin.x, origin.y, dir_vec, owner=self)
+		if world is not None:
+			proj.world = world
+		if world and hasattr(world, 'spider_projectiles'):
+			world.spider_projectiles.add(proj)
+		self._last_attack_time = now
+		self.is_attacking = True
+		self._attack_started_at = now
+		return True
+	
+	def can_throw_net(self):
+		now = time.time()
+		return (now - self._last_attack_time) >= self.attack_cooldown
 
 	def take_damage(self, amount):
 		if not self.is_hit:
@@ -76,6 +139,9 @@ class NPC:
 	def update(self, dt):
 		if self.is_hit and pygame.time.get_ticks() - self.hit_timer > self.hit_duration:
 			self.is_hit = False
+		
+		if hasattr(self, 'hsm') and self.hsm:
+			self.hsm.update(dt)
 	
 	def follow_path_from_nodes(self, path_nodes, nav_mesh_nodes, explicit_target):
 		path_points = [Vector2(nav_mesh_nodes[node_id]) for node_id in path_nodes]
@@ -114,9 +180,6 @@ class NPC:
 		# Configura el algoritmo de movimiento basado en el nombre y parámetros dados
 		alg = SWITCHER_ALGORITHMS.get(self.algorithm_name, None)
 		if not alg:
-			self.algorithm_class = None
-			self.algorithm_params = {}
-			self.algorithm_instance = None
 			return False
 		self.algorithm_class = alg
 		self.algorithm_params = params

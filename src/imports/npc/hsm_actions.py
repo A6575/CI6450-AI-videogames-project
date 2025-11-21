@@ -1,11 +1,3 @@
-# ...existing code...
-"""
-Acciones concretas para estados de la HSM.
-Cada función recibe (context, params) o (context, dt, params) según corresponda.
-Las acciones usan la API pública del NPC: set_algorithm, follow_path_from_nodes,
-current_animation, update_with_algorithm, etc.
-"""
-
 from typing import Dict, Any, Optional
 from imports.pathfinding.a_star import a_star_search
 import math
@@ -69,14 +61,14 @@ def action_enter_search_jars(context, params: Dict[str, Any]):
                 target_node = nav_mesh.find_node_at_position(target_pos)
             except Exception as e:
                 target_node = None
-            # Si hay nodos, usar follow_path_from_nodes (requiere path_nodes y nav_mesh_nodes)
+            # Si hay nodos, usar follow_path_from_nodes 
             if target_node is not None:
                 path_nodes = a_star_search(npc.current_node_id, target_node, world.nav_mesh.nodes, world.nav_mesh.edges)
                 target = params['explicit_target']
                 target.kinematic.position = target_pos
                 npc.follow_path_from_nodes(path_nodes, world.nav_mesh.nodes, explicit_target=target)
                 return
-        # Fallback: usar set_algorithm con target explícito (FollowPath si está disponible en SWITCHER)
+        # Fallback: usar set_algorithm con target explícito
         npc.algorithm_name = 'FollowPath'
         npc.set_algorithm(explicit_target=target_pos)
 
@@ -170,7 +162,7 @@ def action_start_throw_net(context, params: Dict[str, Any]):
     # Guardar referencia al objetivo de ataque (si existe)
     target_pos = getattr(world, 'player_position', None) if world else None
     setattr(npc, 'attack_target', target_pos)
-    # Registrar tiempo de inicio de ataque (puede usarse para temporizar 'realizo_ataque')
+    # Registrar tiempo de inicio de ataque
     npc._attack_started_at = time.time()
 
 
@@ -215,7 +207,7 @@ def action_enter_alert(context, params: Dict[str, Any]):
     npc = context.npc
     world = context.world
     npc.current_animation = 'idle'
-    # Notificar al mundo (si implementado)
+    # Notificar al mundo (POR IMPLEMENTAR)
     if world and hasattr(world, 'notify_alert'):
         try:
             world.notify_alert(npc.kinematic.position, source=npc)
@@ -282,7 +274,7 @@ def action_enter_rob(context, params):
     npc = context.npc
     world = context.world
     npc.current_animation = 'walk'
-    # configurar algoritmo para perseguir al jugador (FollowPath o DynamicArrive)
+    # Configurado algoritmo para mirar al jugador *Face
     alg_params = {
         'face_target': world.player,
         'explicit_target': params['explicit_target']
@@ -343,10 +335,10 @@ def action_update_rob(context, dt, params):
         else:
             # comprobar si la animación / duración finalizó
             if (time.time() - (npc._steal_started_at or 0.0)) >= steal_duration:
-                # ejecutar lógica de captura (intentar API del mundo primero)
+                # ejecutar lógica de captura (intentar funcion del mundo primero)
                 captured = False
                 try:
-                    # Preferir API explícita del mundo si existe
+                    # Preferir funcion explícita del mundo si existe
                     transfer_fn = getattr(world, 'transfer_jar_from_player_to_npc', None)
                     if callable(transfer_fn):
                         captured = transfer_fn(player, npc)

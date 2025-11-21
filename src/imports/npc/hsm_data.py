@@ -1,11 +1,4 @@
-"""
-Implementación compacta y declarativa de una Máquina de Estados Jerárquica (HSM).
-- Definición de estados con on_enter/on_exit/on_update y transiciones por evento.
-- Maneja estado inicial y opción de historia (shallow).
-- Resolución de rutas de destino por nombre (relativo o absoluto desde root).
-- Integración mediante Context(npc, world).
-"""
-from typing import Callable, Dict, Optional, Any, List
+from typing import Optional, List
 from imports.npc import hsm_actions 
 from imports.npc import hsm_conditions
 from imports.player.player import Player
@@ -15,7 +8,6 @@ class Context:
 	def __init__(self, npc, world=None):
 		self.npc = npc
 		self.world = world
-
 
 class StateDef:
 	"""Definición de un estado en la HSM."""
@@ -43,7 +35,7 @@ class StateDef:
 		self.substates = substates or {}
 		# Subestado inicial de este compuesto (si existe)
 		self.initial = initial
-		# Si debe recordar el subestado previo (shallow history)
+		# Si debe recordar el subestado previo activo
 		self.history = history
 		# Parámetros asociados al estado (se pasan a acciones)
 		self.params = params or {}
@@ -293,8 +285,6 @@ def build_tejedora_hsm(context: Context) -> HSM:
         on_exit=hsm_actions.action_exit_protect,
         on_update=hsm_actions.action_update_protect,
         transitions={
-			'encuentra_jugador': 'LANZAR_RED', 
-			'recibe_dano': 'LANZAR_RED',
 			'tarro_perdido': 'BuscarTarrosSinRed'
 		},
         params={
@@ -304,8 +294,6 @@ def build_tejedora_hsm(context: Context) -> HSM:
 				'max_acceleration': 150
 			},
 			'condition_checks': {
-				'player_near': "encuentra_jugador",
-				'received_damage': "recibe_dano",
 				'protected_jar_lost': "tarro_perdido",
 			}
 		}
@@ -317,13 +305,13 @@ def build_tejedora_hsm(context: Context) -> HSM:
         on_enter=hsm_actions.action_enter_search_jars,
         on_exit=hsm_actions.action_exit_search_jars,
         on_update=hsm_actions.action_update_search_jars,
-        transitions={'encuentra_tarro': 'Proteger', 'encuentra_jugador': 'LANZAR_RED', 'recibe_dano': 'LANZAR_RED'},
+        transitions={
+			'encuentra_tarro': 'Proteger', 
+		},
         params={
 			'explicit_target': Player("Target", 0, 0, 0),
 			'condition_checks': {
 				'reached_goal': "encuentra_tarro",
-				'player_near': "encuentra_jugador",
-				'received_damage': "recibe_dano",
 			}
 		}
     )
@@ -333,7 +321,17 @@ def build_tejedora_hsm(context: Context) -> HSM:
         name='TEJER',
         substates={'BuscarTarrosSinRed': buscar_tarros, 'Proteger': proteger},
         initial='BuscarTarrosSinRed',
-        history=True  # recordar subestado previo al volver a TEJER
+        history=True,  # recordar subestado previo al volver a TEJER
+		transitions={
+			'encuentra_jugador': 'LANZAR_RED', 
+			'recibe_dano': 'LANZAR_RED'
+		},
+		params={
+			'condition_checks': {
+				'player_near': "encuentra_jugador",
+				'received_damage': "recibe_dano",
+			}
+		}
     )
 
     # Estado LANZAR_RED (ataque): preparar y lanzar la red
@@ -387,6 +385,8 @@ def build_cazadora_hsm(context: Context) -> HSM:
         - LANZAR_RED (reutiliza acciones de tejedora)
         - HUIR
 	"""
+
+	# Subestado inicial: Robar tarros al jugador
 	robar = StateDef(
 		name='Robar',
 		on_enter=hsm_actions.action_enter_rob,
@@ -398,6 +398,7 @@ def build_cazadora_hsm(context: Context) -> HSM:
 		}
 	)
 
+	# Subestado: Huir con tarro capturado
 	huir_con_tarro = StateDef(
 		name='HuirConTarro',
 		on_enter=hsm_actions.action_enter_flee_with_jar,
@@ -417,6 +418,7 @@ def build_cazadora_hsm(context: Context) -> HSM:
 		}
 	)
 
+	# Estado compuesto EMBOSCAR con subestados Robar y HuirConTarro
 	emboscar = StateDef(
 		name='EMBOSCAR',
 		substates={'Robar': robar, 'HuirConTarro': huir_con_tarro},
@@ -424,6 +426,7 @@ def build_cazadora_hsm(context: Context) -> HSM:
 		history=False
 	)
 
+	# Estado CAZAR: cazar al jugador por el mapa
 	cazar = StateDef(
 		name='CAZAR',
 		on_enter=hsm_actions.action_enter_cazar,
@@ -457,6 +460,7 @@ def build_cazadora_hsm(context: Context) -> HSM:
 		}
 	)
 
+	# Estado LANZAR_RED (ataque): preparar y lanzar la red
 	lanzar_red = StateDef(
 		name='LANZAR_RED',
 		on_enter=hsm_actions.action_start_throw_net,
@@ -476,6 +480,7 @@ def build_cazadora_hsm(context: Context) -> HSM:
         }
 	)
 
+	# Estado HUIR: huir del peligro
 	huir = StateDef(
 		name='HUIR',
 		on_enter=hsm_actions.action_enter_flee,
@@ -516,6 +521,7 @@ def build_criadora_hsm(context: Context) -> HSM:
 			- ProtegerHuevo
 		- HUIR
 	"""
+	# Subestado inicial PonerHuevo
 	poner_huevo = StateDef(
 		name='PonerHuevo',
 		on_enter=hsm_actions.action_enter_lay_egg,
@@ -523,30 +529,37 @@ def build_criadora_hsm(context: Context) -> HSM:
 		on_update=hsm_actions.action_update_lay_egg,
 		transitions={
 			'huevo_puesto': 'ProtegerHuevo',
-			'enemigo_en_zona': 'HUIR',
 		},
-		params={
-			'condition_checks': {
-				'player_near': 'enemigo_en_zona',
-			}
-		}
+		params={}
 	)
 
+	# Subestado ProtegerHuevo
 	proteger_huevo = StateDef(
 		name='ProtegerHuevo',
 		on_enter=hsm_actions.action_enter_protect_egg,
 		on_exit=hsm_actions.action_exit_protect_egg,
 		on_update=hsm_actions.action_update_protect_egg,
-		transitions={
-			'enemigo_en_zona': 'HUIR',
-			'nacio_cria': 'BUSCAR_ZONA_SEGURA'
-		},
+		transitions={},
 		params={
 			'algorithm_name': 'DynamicSeek', 
 			'algorithm_params': {
 				'target': Player("Target", 0,0,0),
 				'max_acceleration': 150
 			},
+		}
+	)
+
+	# Estado compuesto CRIAR con subestados PonerHuevo y ProtegerHuevo
+	criar = StateDef(
+		name='CRIAR',
+		substates={'PonerHuevo': poner_huevo, 'ProtegerHuevo': proteger_huevo},
+		initial='PonerHuevo',
+		history=False,
+		transitions={
+			'enemigo_en_zona': 'HUIR',
+			'nacio_cria': 'BUSCAR_ZONA_SEGURA'
+		},
+		params={
 			'condition_checks': {
 				'player_near': 'enemigo_en_zona',
 				'offspring_born': 'nacio_cria'
@@ -554,13 +567,7 @@ def build_criadora_hsm(context: Context) -> HSM:
 		}
 	)
 
-	criar = StateDef(
-		name='CRIAR',
-		substates={'PonerHuevo': poner_huevo, 'ProtegerHuevo': proteger_huevo},
-		initial='PonerHuevo',
-		history=False
-	)
-
+	# Estado BUSCAR_ZONA_SEGURA: buscar una zona segura para poner huevo
 	buscar_zona_segura = StateDef(
 		name='BUSCAR_ZONA_SEGURA',
 		on_enter=hsm_actions.action_enter_search_safe_zone,
@@ -575,6 +582,7 @@ def build_criadora_hsm(context: Context) -> HSM:
 		}
 	)
 
+	# Estado HUIR: huir del peligro
 	huir = StateDef(
 		name='HUIR',
 		on_enter=hsm_actions.action_enter_flee,

@@ -1,7 +1,6 @@
-# src/map.py
 import pygame
 import pytmx
-from typing import Any, cast  # Importación para permitir cast a Any y evitar errores de tipado
+from typing import Any, cast  
 
 class Map:
     def __init__(self, tmx_file):

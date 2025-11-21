@@ -2,9 +2,11 @@ import heapq
 import math
 import pygame
 
+# Heurística: Distancia Euclidiana
 def heuristic(a, b):
 	return math.sqrt((b[0] - a[0])**2 + (b[1] - a[1])**2)
 
+# Implementación A*
 def a_star_search(start_node_id, goal_node_id, nodes, edges):
 	graph = {node_id: [] for node_id in nodes}
 	for id1, id2 in edges:
@@ -48,14 +50,6 @@ def a_star_search(start_node_id, goal_node_id, nodes, edges):
 def draw_path(surface, path, nodes, camera_offset, color=(0, 191, 255), width=3):
     """
     Dibuja una línea que representa el camino calculado por A*.
-
-    Args:
-        surface (pygame.Surface): La superficie donde se dibujará.
-        path (list): La lista de IDs de nodos que forman el camino.
-        nodes (dict): El diccionario de nodos {id: (x, y)}.
-        camera_offset (pygame.Vector2): El desplazamiento de la cámara.
-        color (tuple): El color de la línea del camino.
-        width (int): El grosor de la línea.
     """
     # Se asegura de que haya al menos dos puntos para dibujar una línea.
     if path and len(path) > 1:

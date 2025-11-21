@@ -162,6 +162,7 @@ class Game:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
+                # Activar navigation meshe
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_g:
                         show_nav_mesh = not show_nav_mesh
@@ -171,6 +172,8 @@ class Game:
                         if attack_data:
                             start_pos, direction = attack_data
                             self.seed_projectiles.add(SeedProjectile(start_pos[0], start_pos[1], direction))
+                # Desactivar roles/algoritmos predefinidos en los NPC y pasar a usar unicamente PathFinding y
+                # FollowPath
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == 1 and self.enemies and self.nav_mesh:  # Left click
                         mouse_pos = pygame.mouse.get_pos()
@@ -201,7 +204,7 @@ class Game:
             self.spider_webs.update(dt)
             self.seed_projectiles.update(dt)
             self.spider_projectiles.update(dt)
-            # Update player
+            # Actualizar jugador
             keys = pygame.key.get_pressed()
             # Se pasa la lista de obstáculos al método de movimiento del jugador.
             self.player.move(
@@ -218,7 +221,7 @@ class Game:
             self.player.update(dt)
 
             self._handle_collisions()
-            # Update enemies
+            # Actualizar enemigos
             for enemy in self.enemies:
                 if enemy.name == "DynamicArrive":
                     enemy.update_with_algorithm(
@@ -232,10 +235,10 @@ class Game:
                 enemy.update_animation(dt)
                 enemy.update(dt)
 
-            # Update camera
+            # Actualizar cámara
             self.renderer.update_camera(self.player)
 
-            # Render everything
+            # Renderizar todo
             self.renderer.draw(
                 self.player, 
                 self.enemies,

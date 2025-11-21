@@ -10,6 +10,8 @@ class NavMesh:
 		self.nodes = {}
 		self.edges = []
 		self.graph = {}
+
+		# Sistema de cache para cargar el nav mesh
 		project_root = Path(__file__).resolve().parents[2]
 		cache_path = project_root / "src" / "database" / "nav_mesh.cache"
 		
@@ -32,6 +34,7 @@ class NavMesh:
 		with open(path, 'wb') as f:
 			pickle.dump(cache_data, f)
 		print(f"NavMesh guardada en el cache: {path}")
+
 	def load_from_cache(self, path):
 		with open(path, 'rb') as f:
 			cache_data = pickle.load(f)

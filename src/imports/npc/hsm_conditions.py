@@ -1,6 +1,3 @@
-# Módulo de condiciones reutilizables para las HSM.
-# - Registrar nuevas condiciones con @register_condition('nombre')
-# - Cada condición recibe (context, state_params) y devuelve True/False.
 from typing import Callable, Dict, Any, Optional
 import time
 from pygame.math import Vector2
@@ -8,14 +5,12 @@ from pygame.math import Vector2
 # Registro global de condiciones
 _CONDITIONS: Dict[str, Callable[[Any, Optional[Dict[str, Any]]], bool]] = {}
 
-
 def register_condition(name: str):
     """Decorador para registrar una condición reutilizable."""
     def deco(fn: Callable[[Any, Optional[Dict[str, Any]]], bool]):
         _CONDITIONS[name] = fn
         return fn
     return deco
-
 
 def evaluate_condition(name: str, context, state_params: Optional[Dict[str, Any]] = None) -> bool:
     """Evalúa la condición registrada por nombre; devuelve False si no existe."""
@@ -26,7 +21,6 @@ def evaluate_condition(name: str, context, state_params: Optional[Dict[str, Any]
         return bool(fn(context, state_params or {}))
     except Exception:
         return False
-
 
 # ---------- Condiciones predefinidas útiles ----------
 
@@ -42,7 +36,7 @@ def cond_reached_goal(context, params: Optional[Dict[str, Any]]) -> bool:  # par
     if goal is None:
         return False
 
-    # 1) Si la instancia del algoritmo expone finished/is_done/is_finished, consultarla
+    # 1) Por implementar: proveer finish/is_finished en los algoritmos
     alg = getattr(npc, 'algorithm_instance', None)
     if alg:
         if getattr(alg, 'finished', False) or getattr(alg, 'is_done', False):
@@ -114,7 +108,7 @@ def cond_received_damage(context, params: Optional[Dict[str, Any]]) -> bool:  # 
     - Usa npc.is_hit o npc.last_damage_time si existe.
     """
     npc = context.npc
-    # Si hay flag is_hit, la usamos y luego el sistema puede limpiarla externamente
+    # Si is_hit, la usamos y luego el sistema puede limpiarla externamente
     if getattr(npc, 'is_hit', False):
         return True
     # Alternativa: tiempo desde last_damage_time comparado con window
@@ -123,7 +117,6 @@ def cond_received_damage(context, params: Optional[Dict[str, Any]]) -> bool:  # 
         window = float(params.get('window', 1.0))
         return (time.time() - last) <= window
     return False
-
 
 @register_condition('alert_time_expired')
 def cond_alert_time_expired(context, params: Optional[Dict[str, Any]]) -> bool:  # params puede ser None
@@ -146,7 +139,6 @@ def cond_already_attack(context, params: Optional[Dict[str, Any]]) -> bool:
         return False
     window = float(params.get('window', 0.5)) if params else 0.5
     return (time.time() - last) <= window
-# Puedes registrar más condiciones específicas del juego aquí.
 
 @register_condition('protected_jar_lost')
 def cond_protected_jar_lost(context, params: Optional[Dict[str, Any]]) -> bool:
@@ -227,7 +219,7 @@ def cond_flee_time_expired(context, params: Optional[Dict[str, Any]]) -> bool:
         - duration: duración en segundos para considerar expirado (si se pasa, tiene prioridad).
     """
     npc = context.npc
-    # Obtener inicio y duración: preferir params['duration'] si fue pasado
+    # Obtener inicio y duración
     start = getattr(npc, '_flee_started_at', None)
     duration = None
     try:

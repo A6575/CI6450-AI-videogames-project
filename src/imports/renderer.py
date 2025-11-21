@@ -1,5 +1,3 @@
-# src/renderer.py
-
 import pygame
 import pytmx
 
@@ -20,7 +18,7 @@ class Renderer:
     def _draw_map(self):
         for layer in self.game_map.tmx_data.visible_layers:
             if isinstance(layer, pytmx.TiledTileLayer):
-                # Use tiles() to iterate over (x, y, gid) to avoid issues with type checkers
+                # iterar sobre (x, y, gid)
                 for x, y, image in layer.tiles():
                     if image:
                         self.screen.blit(image, (x * self.game_map.tmx_data.tilewidth - self.camera.left, 

@@ -92,7 +92,7 @@ class Renderer:
                 # Dibuja el contorno del polígono en la pantalla.
                 pygame.draw.polygon(self.screen, (255, 0, 0), screen_points, 1)
 
-    def _draw_objects(self, honey_pots, power_ups, spider_webs, seed_projectiles, spider_projectiles):
+    def _draw_objects(self, honey_pots, power_ups, spider_webs, seed_projectiles, spider_projectiles, eggs):
         if spider_webs:
             for web in spider_webs:
                 screen_rect = web.rect.move(-self.camera.left, -self.camera.top)
@@ -124,12 +124,17 @@ class Renderer:
                 screen_rect = projectile.rect.move(-self.camera.left, -self.camera.top)
                 self.screen.blit(projectile.image, screen_rect)
 
-    def draw(self, player, enemies, honey_pots=None, power_ups=None, spider_webs=None, seed_projectiles=None, spider_projectiles=None, show_debug=False):
+        if eggs:
+            for egg in eggs:
+                screen_rect = egg.rect.move(-self.camera.left, -self.camera.top)
+                self.screen.blit(egg.image, screen_rect)
+
+    def draw(self, player, enemies, honey_pots=None, power_ups=None, spider_webs=None, seed_projectiles=None, spider_projectiles=None, eggs=None, show_debug=False):
         self.screen.fill((0, 0, 0)) # Black background
         self._draw_map()
         if show_debug:
             self._draw_obstacles()
         self._draw_character(player)
-        self._draw_objects(honey_pots, power_ups, spider_webs, seed_projectiles, spider_projectiles)
+        self._draw_objects(honey_pots, power_ups, spider_webs, seed_projectiles, spider_projectiles, eggs)
         for enemy in enemies:
             self._draw_character(enemy)

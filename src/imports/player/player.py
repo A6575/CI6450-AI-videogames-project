@@ -33,7 +33,7 @@ class Player:
 		self.animation_frames = [load(img).convert_alpha() for img in self.animation_images]
 		self.current_frame_index = 0 # Índice del fotograma actual
 		self.sprite = self.animation_frames[self.current_frame_index] # Sprite actual
-		self.sprite_size = (35, 35)						 	 # Tamaño del sprite del personaje
+		self.sprite_size = (33, 33)						 	 # Tamaño del sprite del personaje
 		self.rect = self.sprite.get_rect(center=(x, y))
 
 		# --- Variables para el control de la animación ---

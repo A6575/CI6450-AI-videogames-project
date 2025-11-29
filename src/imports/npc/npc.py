@@ -58,7 +58,7 @@ class NPC:
 		self.current_animation = "walk" # Animación actual, por defecto 'walk'
 		self.current_frame_index = 0 # Índice del fotograma actual
 		self.sprite = self.animations[self.current_animation][self.current_frame_index] # Sprite actual
-		self.sprite_size = (35, 35)
+		self.sprite_size = (33, 33)
 		self.rect = self.sprite.get_rect(center=(x, y))
 		self.animation_timer = 0.0 # Temporizador para cambiar de fotograma
 		self.animation_speed = 0.1 # Tiempo en segundos que dura cada fotograma
@@ -71,7 +71,7 @@ class NPC:
 		self.hsm = None
 		self.hsm_goal = None
 		self._alert_started_at =  0.0
-		self.attack_cooldown = 3.0
+		self.attack_cooldown = 6.0
 		self._last_attack_time = 0.0
 		self._steal_in_progress = False
 		self._steal_started_at = None
@@ -81,6 +81,9 @@ class NPC:
 		self._egg_laid = False
 		self._egg_lay_started_at = None
 		self._egg_lay_duration = 0.0
+		self.current_egg = None
+		self.children_spawned = 0
+		self.max_children = 4
 
 	def init_hsm(self, hsm_builder, game_world):
 		ctx = HSMContext(self, game_world)

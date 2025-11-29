@@ -175,7 +175,7 @@ def cond_player_near_with_honey(context, params: Optional[Dict[str, Any]]) -> bo
     try:
         px, py = world.player.kinematic.position
         nx, ny = npc.kinematic.position.x, npc.kinematic.position.y
-        radius = float(params.get('radius', 80.0)) if params else 80.0
+        radius = float(params.get('radius', 5.0)) if params else 5.0
         if (px - nx)**2 + (py - ny)**2 > radius * radius:
             return False
         return getattr(world.player, 'honey_collected', 0) > 0
@@ -192,7 +192,7 @@ def cond_player_near_no_honey(context, params: Optional[Dict[str, Any]]) -> bool
     try:
         px, py = world.player.kinematic.position
         nx, ny = npc.kinematic.position.x, npc.kinematic.position.y
-        radius = float(params.get('radius', 80.0)) if params else 80.0
+        radius = float(params.get('attack_radius', 80.0)) if params else 80.0
         if (px - nx)**2 + (py - ny)**2 > radius * radius:
             return False
         count = getattr(world.player, 'honey_collected', 0)

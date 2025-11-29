@@ -1,6 +1,7 @@
 import pygame
 import math
 import time
+import random
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parents[3]   # cuatro niveles arriba
@@ -162,3 +163,26 @@ class SpiderProjectile(pygame.sprite.Sprite):
 			pos = entity.kinematic.position
 			return (pos.x, pos.y)
 		return self.rect.center
+	
+class Egg(pygame.sprite.Sprite):
+	def __init__(self, x, y, time_to_hatch=5):
+		super().__init__()
+		original_image = pygame.image.load(str(BASE_DIR / "assets" / "objects" / "egg.png")).convert_alpha()
+		self.image = pygame.transform.scale(original_image, (20, 20))
+		self.rect = self.image.get_rect(center=(x, y))
+		self.time_to_hatch = time_to_hatch
+		self.elapsed_time = 0
+
+	def update(self, dt):
+		self.elapsed_time += dt
+		if self.elapsed_time >= self.time_to_hatch:
+			self.hatch()
+
+	def hatch(self):
+		self.kill()
+		print("El huevo ha eclosionado.")
+
+	def spawn_npc(self, world):
+		enemy_types = ["Cazadora", "Tejedora"]
+		enemy_type = random.choice(enemy_types)
+		world.spawn_enemy(enemy_type, self.rect.centerx, self.rect.centery)

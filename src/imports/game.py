@@ -1,6 +1,7 @@
 # Clase principal del juego que maneja la inicialización, el bucle principal y la integración de todos los componentes.
 import pygame
 import random
+from imports.npc import npc
 from imports.renderer import Renderer
 from imports.map.mapa import Map
 from imports.player.player import Player
@@ -10,6 +11,7 @@ from imports.nav_mesh import NavMesh
 from imports.objects.game_obj import HoneyPot, PowerUp, SpiderWeb, SeedProjectile
 from imports.npc.hsm_data import build_tejedora_hsm, build_cazadora_hsm, build_criadora_hsm
 from imports.npc.npc import NPC
+
 class Game:
     def __init__(self):
         pygame.init()
@@ -34,6 +36,7 @@ class Game:
         self.spider_webs = pygame.sprite.Group()
         self.seed_projectiles = pygame.sprite.Group()
         self.spider_projectiles = pygame.sprite.Group()
+        self.eggs = pygame.sprite.Group()
 
         self.show_loading_screen("Cargando Navigation Mesh...")
 
@@ -157,6 +160,7 @@ class Game:
         
         running = True
         show_nav_mesh = False
+        kill_mother = False
         dt = 0
         while running:
             for event in pygame.event.get():
@@ -247,6 +251,7 @@ class Game:
                 self.spider_webs,
                 self.seed_projectiles,
                 self.spider_projectiles,
+                self.eggs,
                 show_debug = show_nav_mesh
             )
             

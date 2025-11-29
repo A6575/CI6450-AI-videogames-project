@@ -1,8 +1,10 @@
 from typing import Dict, Any, Optional
 from imports.pathfinding.a_star import a_star_search
+from imports.objects.game_obj import Egg
 import math
 import time
 
+# MARK: ALGORITHM HELPERS
 def _set_algorithm_from_params(npc, params: Optional[Dict[str, Any]]):
     """Helper: configurar algoritmo en el NPC si params lo indican."""
     if not params:
@@ -15,6 +17,7 @@ def _set_algorithm_from_params(npc, params: Optional[Dict[str, Any]]):
         alg_params = params.get('algorithm_params', {})
         npc.set_algorithm(**alg_params)
 
+# MARK: HSM TEJEDORA
 # --- Acciones específicas para la Tejedora (TEJER / LANZAR_RED / ALERTAR) ---
 
 def action_enter_search_jars(context, params: Dict[str, Any]):
@@ -245,6 +248,7 @@ def action_exit_alert(context, params: Dict[str, Any]):
     if hasattr(npc, '_player_distance'):
         delattr(npc, '_player_distance')
 
+# MARK: HSM CAZADORA
 # --- Acciones específicas para la Cazadora (CAZAR / EMBOSCAR / HUIR) ---
 def action_enter_cazar(context, params):
     """Entrar en CAZAR: configurar algoritmo de búsqueda/persecución."""
@@ -270,11 +274,12 @@ def action_exit_cazar(context, params):
 
 # -- EMBOSCAR: Robar / HuirConTarro --
 def action_enter_rob(context, params):
+    print("Entrar en Robar")
     """Entrar en Robar: perseguir al jugador para robarle los tarros."""
     npc = context.npc
     world = context.world
     npc.current_animation = 'walk'
-    # Configurado algoritmo para mirar al jugador *Face
+    # Configurado algoritmo para mirar al jugador (Face)
     alg_params = {
         'face_target': world.player,
         'explicit_target': params['explicit_target']
@@ -517,6 +522,7 @@ def action_exit_flee(context, params):
     npc.algorithm_name = ''
     npc.set_algorithm()
 
+# MARK: HSM CRIADORA
 # --- Acciones específicas para la Criadora (CRIAR / BUSCAR_ZONA_SEGURA) ---
 def action_enter_lay_egg(context, params):
     """Entrar en PonerHuevo: configurar animación y preparar huevo."""
@@ -536,10 +542,6 @@ def action_update_lay_egg(context, dt, params):
         if start is not None and duration is not None:
             if (time.time() - start) >= float(duration):
                 if not getattr(npc, '_egg_laid', False):
-                    # Lógica para crear el huevo en el mundo
-                    egg_position = (npc.kinematic.position.x, npc.kinematic.position.y) if hasattr(npc, 'kinematic') else (0,0)
-                    if world and hasattr(world, 'spawn_egg'):
-                        world.spawn_egg(egg_position)
                     npc._egg_laid = True
                     # Emitir evento para indicar que el huevo ha sido puesto
                     npc.emit_hsm_event('huevo_puesto')
@@ -549,6 +551,12 @@ def action_update_lay_egg(context, dt, params):
 def action_exit_lay_egg(context, params):
     """Salir de PonerHuevo: limpiar estado relacionado con la puesta del huevo."""
     npc = context.npc
+    world = context.world
+    position = world.nav_mesh.nodes.get(npc.hsm_goal, (npc.kinematic.position.x, npc.kinematic.position.y))
+    egg = Egg(position[0], position[1])
+    world.eggs.add(egg)
+    npc.current_egg = egg
+    npc.children_spawned += 1
 
 def action_enter_protect_egg(context, params):
     """Entrar en ProtegerHuevo: configurar animación y comportamiento de protección."""
@@ -571,11 +579,17 @@ def action_update_protect_egg(context, dt, params):
 def action_exit_protect_egg(context, params):
     """Salir de ProtegerHuevo: limpiar algoritmo si es necesario."""
     npc = context.npc
+    world = context.world
+    npc.current_egg.hatch()
+    npc.current_egg.spawn_npc(world)
+    npc.current_egg = None
     npc.algorithm_name = ''
     npc._egg_laid = False
     npc._egg_lay_started_at = None
     npc._egg_lay_duration = 0.0
     npc.set_algorithm()
+    if npc.children_spawned >= npc.max_children:
+        world.enemies.pop(0)
 
 def action_enter_search_safe_zone(context, params):
     """Entrar en BuscarZonaSegura: configurar algoritmo para moverse a zona segura."""

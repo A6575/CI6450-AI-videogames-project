@@ -423,7 +423,15 @@ def build_cazadora_hsm(context: Context) -> HSM:
 		name='EMBOSCAR',
 		substates={'Robar': robar, 'HuirConTarro': huir_con_tarro},
 		initial='Robar',
-		history=False
+		history=False,
+		transitions={
+			'recibe_dano_critico': 'HUIR',
+		},
+		params={
+			'condition_checks': {
+				'critical_damage': 'recibe_dano_critico',
+			}
+		}
 	)
 
 	# Estado CAZAR: cazar al jugador por el mapa
@@ -454,7 +462,7 @@ def build_cazadora_hsm(context: Context) -> HSM:
 				'received_damage': "recibe_dano",
 			},
 			'condition_params':{
-				'radius': 150,
+				'radius': 8.0,
 				'critical_threshold': 25,
 			}
 		}

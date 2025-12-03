@@ -1,6 +1,7 @@
 from typing import Dict, Any, Optional
 from imports.pathfinding.a_star import a_star_search
-from imports.objects.game_obj import Egg
+from imports.objects.game_obj import Egg, HoneyPot
+from imports.npc.role_weights import ROLE_WEIGHTS
 import math
 import time
 
@@ -19,7 +20,6 @@ def _set_algorithm_from_params(npc, params: Optional[Dict[str, Any]]):
 
 # MARK: HSM TEJEDORA
 # --- Acciones específicas para la Tejedora (TEJER / LANZAR_RED / ALERTAR) ---
-
 def action_enter_search_jars(context, params: Dict[str, Any]):
     """
     Al entrar en BuscarTarrosSinRed:
@@ -66,10 +66,18 @@ def action_enter_search_jars(context, params: Dict[str, Any]):
                 target_node = None
             # Si hay nodos, usar follow_path_from_nodes 
             if target_node is not None:
-                path_nodes = a_star_search(npc.current_node_id, target_node, world.nav_mesh.nodes, world.nav_mesh.edges)
+                path_nodes = a_star_search(
+                    npc.current_node_id,
+                    target_node,
+                    world.nav_mesh.nodes,
+                    world.nav_mesh.edges,
+                    tactical_data=world.tactical_manager.tactical_data,
+                    role_weights=ROLE_WEIGHTS["Tejedora"]
+                )
                 target = params['explicit_target']
                 target.kinematic.position = target_pos
                 npc.follow_path_from_nodes(path_nodes, world.nav_mesh.nodes, explicit_target=target)
+                world.test_path = path_nodes  # Para debug visual
                 return
         # Fallback: usar set_algorithm con target explícito
         npc.algorithm_name = 'FollowPath'
@@ -124,7 +132,6 @@ def action_enter_protect(context, params: Dict[str, Any]):
         npc.algorithm_name = ''
         npc.set_algorithm()
 
-
 def action_update_protect(context, dt: float, params: Dict[str, Any]):
     """
     Update de Proteger: delega la actualización al algoritmo (si existe).
@@ -168,7 +175,6 @@ def action_start_throw_net(context, params: Dict[str, Any]):
     # Registrar tiempo de inicio de ataque
     npc._attack_started_at = time.time()
 
-
 def action_update_throw_net(context, dt: float, params: Dict[str, Any]):
     """
     Update en LANZAR_RED:
@@ -185,7 +191,6 @@ def action_update_throw_net(context, dt: float, params: Dict[str, Any]):
     if hasattr(npc, 'perform_throw_net'):
         attack_performed = npc.perform_throw_net(world)
 
-
 def action_stop_throw_net(context, params: Dict[str, Any]):
     """
     Al salir de LANZAR_RED: limpiar flags de ataque y volver a animación por defecto.
@@ -200,7 +205,6 @@ def action_stop_throw_net(context, params: Dict[str, Any]):
     if hasattr(npc, '_attack_started_at'):
         delattr(npc, '_attack_started_at')
 
-
 def action_enter_alert(context, params: Dict[str, Any]):
     """
     Al entrar en ALERTAR:
@@ -213,12 +217,11 @@ def action_enter_alert(context, params: Dict[str, Any]):
     # Notificar al mundo (POR IMPLEMENTAR)
     if world and hasattr(world, 'notify_alert'):
         try:
-            world.notify_alert(npc.kinematic.position, source=npc)
+            world.notify_alert(world.player.current_node_id, world.player.health)
         except Exception:
             pass
     # Registrar inicio de alerta para poder medir duración
     setattr(npc, '_alert_started_at', time.time())
-
 
 def action_update_alert(context, dt: float, params: Dict[str, Any]):
     """
@@ -236,7 +239,6 @@ def action_update_alert(context, dt: float, params: Dict[str, Any]):
         dist = math.hypot(px - nx, py - ny)
         # Guardar distancia en npc para que el controlador externo pueda decidir emitir eventos
         setattr(npc, '_player_distance', dist)
-
 
 def action_exit_alert(context, params: Dict[str, Any]):
     """
@@ -274,7 +276,6 @@ def action_exit_cazar(context, params):
 
 # -- EMBOSCAR: Robar / HuirConTarro --
 def action_enter_rob(context, params):
-    print("Entrar en Robar")
     """Entrar en Robar: perseguir al jugador para robarle los tarros."""
     npc = context.npc
     world = context.world
@@ -407,13 +408,12 @@ def action_enter_flee_with_jar(context, params):
     if webs is None:
         webs = getattr(world, 'honey_pots', None)
     target_pos = None
+    spider_web_goal = None
     if webs:
-        print("webs:", webs)
         min_d = float('inf')
         for w in webs:
             has_pot = getattr(w, 'has_pot', None)
             if has_pot is None:
-                print("has_pot es None")
                 has_pot = getattr(w, 'on_web', None)
             if has_pot:
                 continue
@@ -425,6 +425,7 @@ def action_enter_flee_with_jar(context, params):
             if d < min_d:
                 min_d = d
                 target_pos = wpos
+                spider_web_goal = w
     
     if target_pos is None:
         npc.algorithm_name = 'DynamicFlee'
@@ -452,8 +453,17 @@ def action_enter_flee_with_jar(context, params):
                 target_node = nav_mesh.find_node_at_position(target_pos)
                 if start_node is not None and target_node is not None:
                     # calcular ruta A* (devuelve lista de node ids)
-                    path_nodes = a_star_search(start_node, target_node, nav_mesh.nodes, nav_mesh.edges)
+                    path_nodes = a_star_search(
+                        start_node, 
+                        target_node, 
+                        nav_mesh.nodes, 
+                        nav_mesh.edges,
+                        tactical_data=world.tactical_manager.tactical_data,
+                        role_weights=ROLE_WEIGHTS["Cazadora"]
+                    )
                     if path_nodes:
+                        spider_web_goal.has_pot = True
+                        world.test_path = path_nodes  # Para debug visual
                         # llamar follow_path_from_nodes con nodos calculados
                         npc.follow_path_from_nodes(path_nodes, nav_mesh.nodes, explicit_target=params['explicit_target'])
                         # guardar meta HSM para condiciones posteriores
@@ -493,10 +503,19 @@ def action_update_flee_with_jar(context, dt, params):
 def action_exit_flee_with_jar(context, params):
     """Salir de HuirConTarro: limpiar estado."""
     npc = context.npc
+    world = context.world
     npc.algorithm_name = ''
     npc.set_algorithm()
     npc._flee_started_at = None
     npc._flee_duration = 0.0
+    # Colocar el tarro en el mundo
+    honey_pot = HoneyPot(
+        world.nav_mesh.nodes.get(npc.hsm_goal, (npc.kinematic.position.x, npc.kinematic.position.y))[0],
+        world.nav_mesh.nodes.get(npc.hsm_goal, (npc.kinematic.position.x, npc.kinematic.position.y))[1],
+        npc.hsm_goal,
+        True if npc.hsm_goal is not None else False
+    )
+    world.honey_pots.add(honey_pot)
 
 # -- HUIR --
 def action_enter_flee(context, params):
@@ -645,8 +664,16 @@ def action_enter_search_safe_zone(context, params):
                             if start_node is None:
                                 continue
                         # intentar A*
-                        path_nodes = a_star_search(start_node, nid, nav_mesh.nodes, nav_mesh.edges)
+                        path_nodes = a_star_search(
+                            start_node,
+                            nid,
+                            nav_mesh.nodes,
+                            nav_mesh.edges,
+                            world.tactical_manager.tactical_data if hasattr(world, 'tactical_manager') else None,
+                            ROLE_WEIGHTS['Criadora']
+                        )
                         if path_nodes:
+                            world.test_path = path_nodes  # Para debug visual
                             npc.follow_path_from_nodes(path_nodes, nav_mesh.nodes, explicit_target=params['explicit_target'])
                             npc.hsm_goal = nid
                             return
@@ -667,7 +694,6 @@ def action_update_search_safe_zone(context, dt, params):
     npc.update_with_algorithm(dt, uses_rotation=False, bounds=bounds, margin=margin, obstacles=obstacles, nav_mesh=nav_mesh)
 
 def action_exit_search_safe_zone(context, params):
-    print("ENTRO A SALIR DE BUSCAR ZONA SEGURA")
     """Salir de BuscarZonaSegura: limpiar algoritmo si es necesario."""
     npc = context.npc
     npc.algorithm_name = ''

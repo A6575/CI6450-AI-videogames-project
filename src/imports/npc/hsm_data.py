@@ -56,7 +56,6 @@ class HSM:
 		self.active_path: List[StateDef] = []
 		# Enlazar padres y establecer estado inicial
 		self._link_parents(self.root, None)
-		print("HSM inicializada. Entrando en estado inicial...")
 		self._enter_initial(self.root)
 	
 	def _active_path_str(self) -> str:
@@ -103,7 +102,6 @@ class HSM:
 		if state.on_enter:
 			state.on_enter(self.context, state.params)
 		self.active_path.append(state)
-		print(f"[HSM] enter -> {self._active_path_str()}")
 
 	def _pop_state(self) -> Optional[StateDef]:
 		"""Sale del estado más profundo: ejecutar on_exit y devolverlo."""
@@ -115,7 +113,6 @@ class HSM:
 		# Si el padre quiere historia, registrar el subestado salido
 		if s.parent and s.parent.history:
 			s.parent._last_active = s.name
-		print(f"[HSM] exit -> {self._active_path_str()}")
 		return s
 
 	def _pop_to(self, ancestor: Optional[StateDef]):

@@ -1,10 +1,10 @@
 # Configuracion de los personajes (NPC y Player)
 import math
 from imports.moves.kinematic import Kinematic, SteeringOutput
-from pygame import BLEND_RGBA_MULT
+from pygame import BLEND_RGBA_MULT, USEREVENT
 from pygame.math import Vector2
 from pygame.image import load
-from pygame.time import get_ticks
+from pygame.time import get_ticks, set_timer
 from pygame import K_LEFT, K_RIGHT, K_UP, K_DOWN
 from pathlib import Path
 
@@ -15,6 +15,7 @@ class Player:
 	def __init__(self, name, health, x, y):
 		self.name = name				# Nombre del personaje
 		self.health = health			# Salud del personaje
+		self.lives = 3					# Vidas del personaje
 		self.kinematic = Kinematic(		# Estado cinemático del personaje
 			position=Vector2(x, y),
 			velocity=Vector2(0, 0), 
@@ -45,6 +46,9 @@ class Player:
 		# Rellenar la superficie de la sombra con un color negro semi-transparente
 		self.shadow_surface.fill((0, 0, 0, 100), special_flags=BLEND_RGBA_MULT)
 		self.current_node_id = None
+		self.is_hit = False
+		self.hit_timer = 0
+		self.hit_duration = 2000
 
 		self.honey_collected = 0
 		self.is_powered_up = False
@@ -55,6 +59,8 @@ class Player:
 		self.last_attack_time = 0
 	
 	def update(self, dt):
+		if self.is_hit and get_ticks() - self.hit_timer > self.hit_duration:
+			self.is_hit = False
 		if self.is_powered_up:
 			self.power_up_timer -= dt * 1000
 			if self.power_up_timer <= 2000:
@@ -79,7 +85,7 @@ class Player:
 			# Vuelve a generar la sombra para el nuevo sprite
 			self.shadow_surface = self.sprite.copy()
 			self.shadow_surface.fill((0, 0, 0, 100), special_flags=BLEND_RGBA_MULT)
-	
+		
 	def activate_power_up(self, duration):
 		self.is_powered_up = True
 		self.power_up_timer = duration

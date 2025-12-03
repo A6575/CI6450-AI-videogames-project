@@ -1,9 +1,10 @@
 # Clase principal del juego que maneja la inicialización, el bucle principal y la integración de todos los componentes.
 import pygame
 import random
-from imports.npc import npc
+from pathlib import Path
 from imports.renderer import Renderer
 from imports.map.mapa import Map
+from imports.map.obj_lists import HONEY_LIST
 from imports.player.player import Player
 from imports.scenario_factory import ScenarioFactory
 from imports.pathfinding.a_star import a_star_search, draw_path
@@ -11,6 +12,9 @@ from imports.nav_mesh import NavMesh
 from imports.objects.game_obj import HoneyPot, PowerUp, SpiderWeb, SeedProjectile
 from imports.npc.hsm_data import build_tejedora_hsm, build_cazadora_hsm, build_criadora_hsm
 from imports.npc.npc import NPC
+from imports.tactical import TacticalManager
+
+BASE_DIR = Path(__file__).resolve().parents[2]   # tres niveles arriba
 
 class Game:
     def __init__(self):
@@ -23,8 +27,8 @@ class Game:
         self.player = Player(
             "Hero", 
             100, 
-            self.screen.get_width() // 2 + 16,
-            self.screen.get_height() // 2 + 16,
+            560,
+            550,
         )
         self.scenario_factory = ScenarioFactory(self.screen, self.map)
         self.enemies = []
@@ -43,10 +47,13 @@ class Game:
         try:
             self.nav_mesh = NavMesh(self.map.tmx_data)
             self._spawn_objects()
+            self.tactical_manager = TacticalManager(self.nav_mesh, self.map.obstacles)
         except ValueError as e:
             print(e)
             self.nav_mesh = None
+            self.tactical_manager = None
         
+        self.clicked_node_ids = []
         
     def spawn_enemy(self, enemy_type, x, y):
         enemy = None
@@ -67,6 +74,20 @@ class Game:
         
         if enemy and self.nav_mesh:
             self.enemies.append(enemy)
+            
+    def draw_player_lives(self):
+        """
+        Dibuja las vidas del jugador en la pantalla.
+        """
+        lives = [
+            pygame.image.load(str(BASE_DIR / "assets" / "health" / "3-hearts.png")).convert_alpha(), # 3 vidas
+            pygame.image.load(str(BASE_DIR / "assets" / "health" / "2-hearts.png")).convert_alpha(), # 2 vidas
+            pygame.image.load(str(BASE_DIR / "assets" / "health" / "1-heart.png")).convert_alpha(),  # 1 vida
+            pygame.image.load(str(BASE_DIR / "assets" / "health" / "0-heart.png")).convert_alpha(), # 0 vidas
+        ]
+        life_index = max(0, min(3, 3 - self.player.lives))  # Asegura que el índice esté entre 0 y 3
+        life_image = lives[life_index]
+        self.screen.blit(life_image, (self.screen.get_width() - life_image.get_width() - 10, 10))  # Dibuja en la esquina superior derecha con un margen de 10 píxeles
 
     def show_loading_screen(self, message):
         self.screen.fill((20, 20, 40))
@@ -82,20 +103,36 @@ class Game:
         
         # Actualiza la pantalla para que el mensaje sea visible.
         pygame.display.flip()
+
+    def show_game_over_screen(self):
+        pygame.time.delay(500)  # Pequeña pausa antes de mostrar la pantalla de Game Over
+        self.screen.fill((20, 20, 40))
+        font = pygame.font.SysFont('Arial', 50)
+        text_surface = font.render("Game Over :(", True, (255, 0, 0))
+        text_rect = text_surface.get_rect(center=self.screen.get_rect().center)
+        self.screen.blit(text_surface, text_rect)
+
+        pygame.display.flip()
         
+        waiting = True
+        while waiting:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    waiting = False
+    
     def _spawn_objects(self):
         if not self.nav_mesh or not self.nav_mesh.nodes:
             return
         
-        possible_node_ids = list(self.nav_mesh.nodes.keys())
-        random.shuffle(possible_node_ids)
+        all_node_ids = set(self.nav_mesh.nodes.keys())
+        possible_power_up_nodes = list(all_node_ids - set(HONEY_LIST))
+        random.shuffle(possible_power_up_nodes)
+        POWER_UP_LIST = possible_power_up_nodes[:5]  # Selecciona 5 nodos aleatorios para power-ups
 
-        num_honey_pots = 10
-        for _ in range(num_honey_pots):
-            if not possible_node_ids:
+        for node_id in HONEY_LIST:
+            if not self.nav_mesh.nodes.get(node_id):
                 break
 
-            node_id = possible_node_ids.pop()
             node_coords = self.nav_mesh.nodes[node_id]
 
             on_web = random.random() < 0.30
@@ -107,15 +144,19 @@ class Game:
                 web = SpiderWeb(node_coords[0], node_coords[1], node_id, has_pot=True)
                 self.spider_webs.add(web)
         
-        num_power_ups = 3
-        for _ in range(num_power_ups):
-            if not possible_node_ids:
+        for node_id in POWER_UP_LIST:
+            if not self.nav_mesh.nodes.get(node_id):
                 break
             
-            node_id = possible_node_ids.pop()
             node_coords = self.nav_mesh.nodes[node_id]
             power_up = PowerUp(node_coords[0], node_coords[1], node_id)
             self.power_ups.add(power_up)
+    
+    def notify_alert(self, player_node_id, player_health):
+        for enemy in self.enemies:
+            if enemy.name in ["Cazadora", "Criadora"]:
+                enemy.recive_alert(player_node_id, player_health)
+                print(f"{enemy.name} ha sido alertado de la presencia del jugador en el nodo {player_node_id} con salud {player_health}.")
     
     def _handle_collisions(self):
         for pot in self.honey_pots.sprites():
@@ -155,16 +196,41 @@ class Game:
         if enemies_to_remove:
             self.enemies = [enemy for enemy in self.enemies if enemy not in enemies_to_remove]
     
-    def run(self, scenario_type):
-        self.spawn_enemy("Criadora", 50, 100)
+    def save_node_ids_to_file(self, filename):
+        try:
+            with open(filename, "w") as file:
+                file.write(str(self.clicked_node_ids))
+            print(f"IDs de nodos guardados en {filename}")
+        except Exception as e:
+            print(f"Error al guardar los IDs de nodos: {e}")
+    
+    def draw_honey_counter(self):
+        """
+        Dibuja el contador de tarros de miel recolectados en la pantalla.
+        """
+        # Texto descriptivo "Tarros de Miel"
+        font = pygame.font.SysFont('Arial', 24)
+        title_text = font.render("Tarros de Miel:", True, (0, 0, 0))  # Texto en negro
+        title_rect = title_text.get_rect(topleft=(10, 10))  # Posición en la esquina superior izquierda
+        self.screen.blit(title_text, title_rect)
+
+        # Contador de tarros recolectados
+        total_honey_pots = len(HONEY_LIST)
+        counter_text = f"{self.player.honey_collected}/{total_honey_pots}"
+        counter_surface = font.render(counter_text, True, (0, 0, 0))  # Texto en negro
+        counter_rect = counter_surface.get_rect(topleft=(title_rect.right + 10, title_rect.top))
+        self.screen.blit(counter_surface, counter_rect)
+    
+    def run(self, npc_type="No role"):
+        self.spawn_enemy(npc_type, 50, 100)
         
         running = True
         show_nav_mesh = False
-        kill_mother = False
         dt = 0
         while running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
+                    #self.save_node_ids_to_file("nodes_id.txt")
                     running = False
                 # Activar navigation meshe
                 elif event.type == pygame.KEYDOWN:
@@ -187,6 +253,8 @@ class Game:
 
                         start_node = seeker.current_node_id
                         goal_node = self.nav_mesh.find_node_at_position(world_pos)
+                        print(f"Clicked world position: {world_pos}, Goal node: {goal_node} ({self.nav_mesh.nodes.get(goal_node)})")
+                        self.clicked_node_ids.append(goal_node)
 
                         if start_node is not None and goal_node is not None and start_node != goal_node:
                             print(f"Buscando camino desde el nodo {start_node} al nodo {goal_node}...")
@@ -208,6 +276,10 @@ class Game:
             self.spider_webs.update(dt)
             self.seed_projectiles.update(dt)
             self.spider_projectiles.update(dt)
+
+            if self.tactical_manager:
+                self.tactical_manager.update_influence_maps(self.honey_pots.sprites())
+            
             # Actualizar jugador
             keys = pygame.key.get_pressed()
             # Se pasa la lista de obstáculos al método de movimiento del jugador.
@@ -254,7 +326,11 @@ class Game:
                 self.eggs,
                 show_debug = show_nav_mesh
             )
-            
+
+            """ if self.player.health <= 0:
+                self.show_game_over_screen()
+                running = False """
+
             if show_nav_mesh and self.nav_mesh:
                 active_nodes = []
                 if self.player.current_node_id is not None:
@@ -263,11 +339,12 @@ class Game:
                     if enemy.current_node_id is not None:
                         active_nodes.append(enemy.current_node_id)
 
-                self.nav_mesh.draw_nav_mesh(
+                """ self.nav_mesh.draw_nav_mesh(
                     self.screen,
                     self.renderer.camera,
+                    self.tactical_manager.tactical_data if self.tactical_manager else None,
                     active_nodes=active_nodes
-                )
+                ) """
 
                 if self.test_path:
                     draw_path(
@@ -278,7 +355,18 @@ class Game:
                         color=(255, 0, 0),
                         width=4
                     )
+                
+                if self.tactical_manager:
+                    self.tactical_manager.draw_debug(self.screen, self.renderer.camera)
+                    self.tactical_manager.draw_debug_tactical_names(
+                        self.screen, 
+                        self.tactical_manager.tactical_data,
+                        self.nav_mesh.nodes,
+                        self.renderer.camera
+                    )
 
+            self.draw_honey_counter()
+            self.draw_player_lives()
             pygame.display.flip()
             dt = self.clock.tick(60) / 1000
             

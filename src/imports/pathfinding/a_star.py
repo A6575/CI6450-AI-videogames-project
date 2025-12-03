@@ -1,13 +1,14 @@
 import heapq
 import math
 import pygame
+from imports.tactical import TacticalInfo
 
 # Heurística: Distancia Euclidiana
 def heuristic(a, b):
 	return math.sqrt((b[0] - a[0])**2 + (b[1] - a[1])**2)
 
 # Implementación A*
-def a_star_search(start_node_id, goal_node_id, nodes, edges):
+def a_star_search(start_node_id, goal_node_id, nodes, edges, tactical_data={}, role_weights={}):
 	graph = {node_id: [] for node_id in nodes}
 	for id1, id2 in edges:
 		graph[id1].append(id2)
@@ -36,7 +37,21 @@ def a_star_search(start_node_id, goal_node_id, nodes, edges):
 			return path[::-1]
 		
 		for neighbor_id in graph[current_id]:
-			tentative_g_score = g_score[current_id] + heuristic(nodes[current_id], nodes[neighbor_id])
+			# Costo original (distancia euclidiana)
+			base_cost = heuristic(nodes[current_id], nodes[neighbor_id])
+
+			# Costo táctico: Promedio de las cualidades tácticas de los nodos conectados
+			tactical_cost = 0
+			if current_id in tactical_data and neighbor_id in tactical_data:
+				for quality, weight in role_weights.items():
+					tactical_cost += weight * (
+						tactical_data.get(neighbor_id, TacticalInfo()).__dict__.get(quality, 0)
+					)
+
+			# Costo total
+			total_cost = max(0, base_cost + tactical_cost)
+			
+			tentative_g_score = g_score[current_id] + total_cost
 
 			if tentative_g_score < g_score[neighbor_id]:
 				came_from[neighbor_id] = current_id

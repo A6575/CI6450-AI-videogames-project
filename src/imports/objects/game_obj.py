@@ -40,6 +40,7 @@ class SpiderWeb(GameObject):
 		super().__init__(x, y, str(BASE_DIR / "assets" / "webs" / "spiderweb_4.png"), node_id, size=(100, 100))
 		self.float_range = 0
 		self.has_pot = has_pot
+
 class SeedProjectile(pygame.sprite.Sprite):
 	def __init__(self, x, y, direction_vector):
 		super().__init__()
@@ -145,8 +146,10 @@ class SpiderProjectile(pygame.sprite.Sprite):
 			if hasattr(player, 'take_damage') and callable(player.take_damage):
 				player.take_damage(self.damage)
 			else:
-				#setattr(player, 'is_hit', True)
+				setattr(player, 'is_hit', True)
+				player.hit_timer = pygame.time.get_ticks()
 				setattr(player, 'health', getattr(player, 'health', 100) - self.damage)
+				setattr(player, 'lives', max(0, getattr(player, 'lives', 3) - 1))
 		except Exception as e:
 			print(f"Error applying damage to player: {e}")
 
@@ -183,6 +186,6 @@ class Egg(pygame.sprite.Sprite):
 		print("El huevo ha eclosionado.")
 
 	def spawn_npc(self, world):
-		enemy_types = ["Cazadora", "Tejedora"]
+		enemy_types = ["Cazadora"]
 		enemy_type = random.choice(enemy_types)
 		world.spawn_enemy(enemy_type, self.rect.centerx, self.rect.centery)

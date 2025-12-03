@@ -4,10 +4,10 @@ from pygame.image import load
 from pygame.math import Vector2
 from pygame import BLEND_RGBA_MULT
 from pathlib import Path
+from imports.npc.blackboard import Blackboard
 from imports.moves.kinematic import Kinematic
 from imports.moves.switcher import SWITCHER_ALGORITHMS
 from imports.map.path import AStarPath
-from imports.moves.path_following import FollowPath
 from imports.npc.hsm_data import Context as HSMContext
 from imports.objects.game_obj import SpiderProjectile
 
@@ -58,7 +58,7 @@ class NPC:
 		self.current_animation = "walk" # Animación actual, por defecto 'walk'
 		self.current_frame_index = 0 # Índice del fotograma actual
 		self.sprite = self.animations[self.current_animation][self.current_frame_index] # Sprite actual
-		self.sprite_size = (33, 33)
+		self.sprite_size = (30, 30)
 		self.rect = self.sprite.get_rect(center=(x, y))
 		self.animation_timer = 0.0 # Temporizador para cambiar de fotograma
 		self.animation_speed = 0.1 # Tiempo en segundos que dura cada fotograma
@@ -84,6 +84,7 @@ class NPC:
 		self.current_egg = None
 		self.children_spawned = 0
 		self.max_children = 4
+		self.blackboard = Blackboard()
 
 	def init_hsm(self, hsm_builder, game_world):
 		ctx = HSMContext(self, game_world)
@@ -94,6 +95,10 @@ class NPC:
 			return self.hsm.handle_event(event)
 		return False
 	
+	def recive_alert(self, player_node_id, player_health):
+		self.blackboard.data["player_last_known_pos"] = player_node_id
+		self.blackboard.data["player_health"] = player_health
+
 	def perform_throw_net(self, world):
 		now = time.time()
 		if now - self._last_attack_time < self.attack_cooldown:

@@ -6,6 +6,7 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parents[3]   # cuatro niveles arriba
 
+# Clase base para objetos del juego
 class GameObject(pygame.sprite.Sprite):
 	def __init__(self, x, y, image_path, node_id, size=(20, 20)):
 		super().__init__()
@@ -25,22 +26,28 @@ class GameObject(pygame.sprite.Sprite):
 		offset = math.sin(self.animation_timer) * self.float_range
 		self.rect.centery = self.initial_pos[1] + offset
 
+# Tarro de miel
 class HoneyPot(GameObject):
 	def __init__(self, x, y, node_id, on_web=False):
 		super().__init__(x, y, str(BASE_DIR / "assets" / "objects" / "2-honeyjar-v2.png"), node_id)
 		self.on_web = on_web
 
+
+# Power-up
 class PowerUp(GameObject):
 	def __init__(self, x, y, node_id):
 		super().__init__(x, y, str(BASE_DIR / "assets" / "objects" / "power-up-1.png"), node_id)
 		self.duration = 10000
 
+
+# Telaraña
 class SpiderWeb(GameObject):
 	def __init__(self, x, y, node_id, has_pot=False):
 		super().__init__(x, y, str(BASE_DIR / "assets" / "webs" / "spiderweb_4.png"), node_id, size=(100, 100))
 		self.float_range = 0
 		self.has_pot = has_pot
 
+# Proyectil de semilla
 class SeedProjectile(pygame.sprite.Sprite):
 	def __init__(self, x, y, direction_vector):
 		super().__init__()
@@ -61,6 +68,7 @@ class SeedProjectile(pygame.sprite.Sprite):
 		if pygame.time.get_ticks() - self.spawn_time > self.lifetime:
 			self.kill()
 
+# Proyectil de telaraña
 class SpiderProjectile(pygame.sprite.Sprite):
 	def __init__(self,
 			  x,
@@ -166,7 +174,8 @@ class SpiderProjectile(pygame.sprite.Sprite):
 			pos = entity.kinematic.position
 			return (pos.x, pos.y)
 		return self.rect.center
-	
+
+# Huevo
 class Egg(pygame.sprite.Sprite):
 	def __init__(self, x, y, time_to_hatch=5):
 		super().__init__()

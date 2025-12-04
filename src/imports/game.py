@@ -197,6 +197,7 @@ class Game:
             self.enemies = [enemy for enemy in self.enemies if enemy not in enemies_to_remove]
     
     def save_node_ids_to_file(self, filename):
+        # Guarda los IDs de nodos clickeados en un archivo de texto.
         try:
             with open(filename, "w") as file:
                 file.write(str(self.clicked_node_ids))
@@ -230,7 +231,6 @@ class Game:
         while running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    #self.save_node_ids_to_file("nodes_id.txt")
                     running = False
                 # Activar navigation meshe
                 elif event.type == pygame.KEYDOWN:
@@ -327,9 +327,9 @@ class Game:
                 show_debug = show_nav_mesh
             )
 
-            """ if self.player.health <= 0:
+            if self.player.health <= 0:
                 self.show_game_over_screen()
-                running = False """
+                running = False
 
             if show_nav_mesh and self.nav_mesh:
                 active_nodes = []
@@ -339,11 +339,12 @@ class Game:
                     if enemy.current_node_id is not None:
                         active_nodes.append(enemy.current_node_id)
 
+                # Descomentar para dibujar la malla de navegación
                 """ self.nav_mesh.draw_nav_mesh(
                     self.screen,
                     self.renderer.camera,
                     self.tactical_manager.tactical_data if self.tactical_manager else None,
-                    active_nodes=active_nodes
+                    active_nodes=active_nodes,
                 ) """
 
                 if self.test_path:

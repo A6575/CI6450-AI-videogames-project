@@ -67,24 +67,24 @@ class NPC:
 		self.shadow_surface = self.sprite.copy()
 		# Rellenar la superficie de la sombra con un color negro semi-transparente
 		self.shadow_surface.fill((0, 0, 0, 100), special_flags=BLEND_RGBA_MULT)
-		self.current_node_id = None
-		self.hsm = None
-		self.hsm_goal = None
-		self._alert_started_at =  0.0
-		self.attack_cooldown = 6.0
-		self._last_attack_time = 0.0
-		self._steal_in_progress = False
-		self._steal_started_at = None
-		self._has_stolen = False
-		self._flee_started_at = None
-		self._flee_duration = 0.0
-		self._egg_laid = False
-		self._egg_lay_started_at = None
-		self._egg_lay_duration = 0.0
-		self.current_egg = None
-		self.children_spawned = 0
-		self.max_children = 4
-		self.blackboard = Blackboard()
+		self.current_node_id = None			# Nodo actual en el mapa
+		self.hsm = None						# Máquina de estados jerárquica
+		self.hsm_goal = None				# Meta actual de la HSM
+		self._alert_started_at =  0.0		# Tiempo en que comenzó la alerta
+		self.attack_cooldown = 6.0			# Tiempo de recarga entre ataques
+		self._last_attack_time = 0.0		# Última vez que atacó
+		self._steal_in_progress = False		# Indica si un robo está en progreso
+		self._steal_started_at = None		# Tiempo en que comenzó el robo
+		self._has_stolen = False			# Indica si ya robó
+		self._flee_started_at = None		# Tiempo en que comenzó la huida
+		self._flee_duration = 0.0			# Duración de la huida
+		self._egg_laid = False				# Indica si puso un huevo
+		self._egg_lay_started_at = None		# Tiempo en que comenzó a poner el huevo
+		self._egg_lay_duration = 0.0		# Duración de la puesta del huevo
+		self.current_egg = None				# Referencia al huevo actual si existe
+		self.children_spawned = 0			# Número de hijos generados
+		self.max_children = 4				# Máximo número de hijos permitidos
+		self.blackboard = Blackboard()		# Pizarra compartida para coordinación entre NPCs
 
 	def init_hsm(self, hsm_builder, game_world):
 		ctx = HSMContext(self, game_world)

@@ -45,18 +45,18 @@ class Player:
 		self.shadow_surface = self.sprite.copy()
 		# Rellenar la superficie de la sombra con un color negro semi-transparente
 		self.shadow_surface.fill((0, 0, 0, 100), special_flags=BLEND_RGBA_MULT)
-		self.current_node_id = None
-		self.is_hit = False
-		self.hit_timer = 0
-		self.hit_duration = 2000
+		self.current_node_id = None			# Nodo actual en el mapa
+		self.is_hit = False					# Indica si el jugador ha sido golpeado
+		self.hit_timer = 0					# Temporizador para controlar el tiempo de estar golpeado
+		self.hit_duration = 2000			# Duración en milisegundos del estado de golpeado
 
-		self.honey_collected = 0
-		self.is_powered_up = False
-		self.power_up_timer = 0
-		self.original_speed = 120
-		self.aura_blinking = False
-		self.attack_cooldown = 500
-		self.last_attack_time = 0
+		self.honey_collected = 0			# Cantidad de miel recolectada
+		self.is_powered_up = False			# Indica si el jugador tiene un power-up activo
+		self.power_up_timer = 0				# Temporizador para controlar la duración del power-up
+		self.original_speed = 120			# Velocidad original del jugador
+		self.aura_blinking = False			# Indica si el aura del power-up está parpadeando
+		self.attack_cooldown = 500			# Tiempo de reutilización del ataque en milisegundos
+		self.last_attack_time = 0			# Último tiempo en que se realizó un ataque	
 	
 	def update(self, dt):
 		if self.is_hit and get_ticks() - self.hit_timer > self.hit_duration:

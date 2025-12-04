@@ -8,7 +8,7 @@ ROLE_WEIGHTS = {
     },
     "Cazadora": {
         "honey_amount": 0,    # Pequeño positivo para neutralidad en influencia de miel
-        "is_crossroad": -300, # Gran negativo para priorizar conectividad
+        "is_crossroad": -100, # Gran negativo para priorizar conectividad
         "is_cover": 500,      # Gran positivo para evitar cobertura
         "is_corner": 100,     # Medio positivo para evitar esquinas
     },

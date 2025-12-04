@@ -58,7 +58,6 @@ def cond_reached_goal(context, params: Optional[Dict[str, Any]]) -> bool:  # par
     except Exception:
         return False
 
-
 @register_condition('player_near')
 def cond_player_near(context, params: Optional[Dict[str, Any]]) -> bool:  # params puede ser None
     """

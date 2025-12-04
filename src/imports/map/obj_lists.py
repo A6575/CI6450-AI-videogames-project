@@ -1,3 +1,4 @@
+# Lista de IDs de los nodos en donde hay objetos de miel inicialmente
 HONEY_LIST = [
     567, 584, 606, 604, 627, 621, 644, 837, 675, 779,
     791, 1247, 1475, 1262, 1312, 1472, 1467, 1376, 1239, 1402,

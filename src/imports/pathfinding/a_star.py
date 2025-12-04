@@ -40,7 +40,7 @@ def a_star_search(start_node_id, goal_node_id, nodes, edges, tactical_data={}, r
 			# Costo original (distancia euclidiana)
 			base_cost = heuristic(nodes[current_id], nodes[neighbor_id])
 
-			# Costo táctico: Promedio de las cualidades tácticas de los nodos conectados
+			# Costo táctico: Cualidades tácticas de los nodos conectados
 			tactical_cost = 0
 			if current_id in tactical_data and neighbor_id in tactical_data:
 				for quality, weight in role_weights.items():
@@ -48,7 +48,7 @@ def a_star_search(start_node_id, goal_node_id, nodes, edges, tactical_data={}, r
 						tactical_data.get(neighbor_id, TacticalInfo()).__dict__.get(quality, 0)
 					)
 
-			# Costo total
+			# Costo total. Asegurando que no sea negativo.
 			total_cost = max(0, base_cost + tactical_cost)
 			
 			tentative_g_score = g_score[current_id] + total_cost

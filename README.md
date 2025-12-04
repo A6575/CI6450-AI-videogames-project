@@ -80,6 +80,7 @@ CI6450-AI-videogames-project/
 │   └── imports/          		  # Módulos y clases del juego
 │       ├── map/          		  # Clases relacionadas con el mapa y caminos
 │       │   ├── path.py   		  # Clase para la generación y manejo de caminos
+│       │   ├── obj_lists.py   	  # Listas de generacion de objetos
 │		│	└── mapa.py	  		  # Clase para la representación y manejo del mapa
 │       ├── player/       		  # Clases relacionadas con el jugador
 │       │   └── player.py 		  # Clase para el personaje principal
@@ -90,6 +91,7 @@ CI6450-AI-videogames-project/
 │       ├── game.py       		  # Clase para el manejo del juego.
 │       ├── nav_mesh.py   		  # Clases relacionadas con la malla de navegación
 │       ├── renderer.py   		  # Clases relacionada con el renderizado del juego
+│       ├── tactical.py  		  # Clases relacionadas con el manejo táctico del juego
 │       └── scenario_factory.py   # Clase para seteo de NPC con un único algoritmo de movimiento
 │
 ├── assets/               		  # Recursos del juego (imágenes, sonidos, etc.)

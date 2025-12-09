@@ -130,7 +130,7 @@ class Game:
         all_node_ids = set(self.nav_mesh.nodes.keys())
         possible_power_up_nodes = list(all_node_ids - set(HONEY_LIST))
         random.shuffle(possible_power_up_nodes)
-        POWER_UP_LIST = possible_power_up_nodes[:5]  # Selecciona 5 nodos aleatorios para power-ups
+        POWER_UP_LIST = possible_power_up_nodes[:10]  # Selecciona 10 nodos aleatorios para power-ups
 
         for node_id in HONEY_LIST:
             if not self.nav_mesh.nodes.get(node_id):
@@ -152,7 +152,8 @@ class Game:
                 break
             
             node_coords = self.nav_mesh.nodes[node_id]
-            power_up = PowerUp(node_coords[0], node_coords[1], node_id)
+            power_up_type = "attack" if random.random() <= 0.5 else "health"
+            power_up = PowerUp(node_coords[0], node_coords[1], node_id, type=power_up_type)
             self.power_ups.add(power_up)
     
     def notify_alert(self, player_node_id, player_health):
@@ -173,7 +174,7 @@ class Game:
         
         for power_up in self.power_ups.sprites():
             if self.player.rect.colliderect(power_up.rect):
-                self.player.activate_power_up(power_up.duration)
+                self.player.activate_power_up(power_up.duration, power_up.type)
                 power_up.kill()
 
         enemies_to_remove = []
@@ -219,6 +220,7 @@ class Game:
         counter_surface = font.render(counter_text, True, (0, 0, 0))  # Texto en negro
         counter_rect = counter_surface.get_rect(topleft=(title_rect.right + 10, title_rect.top))
         self.screen.blit(counter_surface, counter_rect)
+    
     def show_start_screen(self):
         running = True
         font_title = pygame.font.SysFont('Arial', 60, bold=True)
@@ -235,7 +237,6 @@ class Game:
 
         while running:
             self.screen.fill(bg_color)
-            # Fondo opcional: puedes cargar una imagen aquí si lo prefieres
 
             # Título
             title_surf = font_title.render("Bee-Collector", True, (255, 255, 0))
@@ -267,9 +268,11 @@ class Game:
                     elif exit_rect.collidepoint(event.pos):
                         pygame.quit()
                         exit()
-    def run(self, npc_type="No role"):
+    def run(self):
         self.show_start_screen()
-        self.spawn_enemy(npc_type, 50, 100)
+        self.spawn_enemy("Criadora", 50, 100)
+        self.spawn_enemy("Cazadora", 150, 100)
+        self.spawn_enemy("Tejedora", 250, 100)
         
         running = True
         show_nav_mesh = False

@@ -3,6 +3,4 @@ from imports.game import Game
 
 if __name__ == "__main__":
 	game = Game()
-	game.run(
-		npc_type="Criadora"
-	)
+	game.run()

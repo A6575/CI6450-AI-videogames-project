@@ -32,13 +32,13 @@ class HoneyPot(GameObject):
 		super().__init__(x, y, str(BASE_DIR / "assets" / "objects" / "2-honeyjar-v2.png"), node_id)
 		self.on_web = on_web
 
-
 # Power-up
 class PowerUp(GameObject):
-	def __init__(self, x, y, node_id):
-		super().__init__(x, y, str(BASE_DIR / "assets" / "objects" / "power-up-1.png"), node_id)
+	def __init__(self, x, y, node_id, type="attack"):
+		asset = str(BASE_DIR / "assets" / "objects" / "power-up-1.png") if type == "attack" else str(BASE_DIR / "assets" / "objects" / "power-up-3.png")
+		super().__init__(x, y, asset, node_id)
+		self.type = type
 		self.duration = 10000
-
 
 # Telaraña
 class SpiderWeb(GameObject):

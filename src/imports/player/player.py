@@ -85,7 +85,11 @@ class Player:
 			self.shadow_surface = self.sprite.copy()
 			self.shadow_surface.fill((0, 0, 0, 100), special_flags=BLEND_RGBA_MULT)
 		
-	def activate_power_up(self, duration):
+	def activate_power_up(self, duration, type="attack"):
+		if type == "health":
+			self.health = min(100, self.health + 25)
+			self.lives = min(4, self.lives + 1)
+			return
 		self.is_powered_up = True
 		self.power_up_timer = duration
 		self.aura_blinking = False

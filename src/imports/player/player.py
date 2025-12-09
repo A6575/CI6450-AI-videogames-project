@@ -15,7 +15,7 @@ class Player:
 	def __init__(self, name, health, x, y):
 		self.name = name				# Nombre del personaje
 		self.health = health			# Salud del personaje
-		self.lives = 3					# Vidas del personaje
+		self.lives = 4					# Vidas del personaje
 		self.kinematic = Kinematic(		# Estado cinemático del personaje
 			position=Vector2(x, y),
 			velocity=Vector2(0, 0), 
@@ -69,7 +69,6 @@ class Player:
 			if self.power_up_timer <= 0:
 				self.is_powered_up = False
 				self.aura_blinking = False
-				print("Power-up desactivado!")
 
 	def update_animation(self, dt):
 		# Actualiza el temporizador de la animación
@@ -90,13 +89,11 @@ class Player:
 		self.is_powered_up = True
 		self.power_up_timer = duration
 		self.aura_blinking = False
-		print("Power-up activado!")
 	
 	def attack(self):
 		current_time = get_ticks()
 		if self.is_powered_up and current_time - self.last_attack_time > self.attack_cooldown:
 			self.last_attack_time = current_time
-			print("Ataque realizado!")
 			angle_rad = math.radians(self.kinematic.orientation)
 			direction = Vector2(-math.sin(angle_rad), -math.cos(angle_rad)).normalize()
 			

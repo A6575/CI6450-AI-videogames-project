@@ -42,6 +42,7 @@ def action_enter_search_jars(context, params: Dict[str, Any]):
     # Encontrar tarro más cercano que no esté protegido
     min_dist = float('inf')
     target_pos = None
+    target_honey = None
     for j in jar_positions:
         if j in protected_jars:
             continue
@@ -104,6 +105,7 @@ def action_exit_search_jars(context, params: Dict[str, Any]):
     - Por defecto no hace mucho, pero dejamos la posibilidad de detener algoritmos.
     """
     npc = context.npc
+    world = context.world
     # Detener algoritmo de búsqueda al salir
     npc.algorithm_name = ''
     npc.set_algorithm()

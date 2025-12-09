@@ -261,3 +261,12 @@ def cond_offspring_born(context, params: Optional[Dict[str, Any]]) -> bool:
         except Exception:
             pass
     return False
+
+@register_condition('blackboard_priority')
+def cond_blackboard_priority(context, params: Optional[Dict[str, Any]]) -> bool:
+    npc = context.npc
+    min_priority = params.get('min_priority', 1) if params else 0
+    quality = params.get('quality', '') if params else ''
+    priority = npc.blackboard.data.get(quality, 0)
+
+    return priority <= min_priority and cond_player_near(context, params)

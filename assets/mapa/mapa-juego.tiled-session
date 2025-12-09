@@ -3,51 +3,66 @@
         "height": 4300,
         "width": 2
     },
-    "activeFile": "mapa.tmx",
+    "activeFile": "Wood.tsx",
     "expandedProjectPaths": [
         "."
     ],
     "fileStates": {
         "Bienenkorb.tsx": {
-            "scaleInDock": 1.5,
+            "scaleInDock": 1,
             "scaleInEditor": 1.5
         },
         "C:/Users/Astrid/Bienenkorb.tsx": {
             "scaleInDock": 1,
             "scaleInEditor": 1
         },
+        "Wood.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "fondo.tmx": {
+            "scale": 0.98125,
+            "selectedLayer": 1,
+            "viewCenter": {
+                "x": 399.49044585987264,
+                "y": 303.69426751592357
+            }
+        },
         "mapa.tmx": {
             "scale": 1.5,
             "selectedLayer": 3,
             "viewCenter": {
-                "x": 501.6666666666667,
-                "y": 802.6666666666666
+                "x": 652,
+                "y": 818
             }
         }
     },
     "frame.defaultDuration": 100,
     "last.externalTilesetPath": "E:/astrid/USB/Actual/IA para Juegos/mapa",
-    "last.imagePath": "E:/astrid/USB/Actual/IA para Juegos/mapa",
-    "map.height": 48,
+    "last.imagePath": "E:/astrid/USB/Actual/IA para Juegos/Wooden font v1/Wooden font v1",
+    "map.height": 38,
     "map.lastUsedFormat": "tmx",
     "map.tileHeight": 16,
     "map.tileWidth": 16,
-    "map.width": 64,
+    "map.width": 50,
     "openFiles": [
         "mapa.tmx",
-        "Bienenkorb.tsx"
+        "Bienenkorb.tsx",
+        "Wood.tsx"
     ],
     "project": "mapa-juego.tiled-project",
     "recentFiles": [
-        "Bienenkorb.tsx",
         "mapa.tmx",
+        "Bienenkorb.tsx",
+        "Wood.tsx",
+        "fondo.tmx",
         "C:/Users/Astrid/Bienenkorb.tsx"
     ],
     "tileset.lastUsedFilter": "Archivos de conjuntos de patrones Tiled (*.tsx *.xml)",
     "tileset.lastUsedFormat": "tsx",
     "tileset.tileSize": {
-        "height": 16,
-        "width": 16
+        "height": 25,
+        "width": 15
     },
     "tileset.transparentColor": "#00c1f1",
     "tileset.useTransparentColor": true

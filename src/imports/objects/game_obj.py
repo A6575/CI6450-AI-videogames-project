@@ -76,7 +76,7 @@ class SpiderProjectile(pygame.sprite.Sprite):
 			  direction_vector,
 			  owner=None,
 			  speed = 200,
-			  damage = 40,
+			  damage = 25,
 			  lifetime = 3000,
 			  stick_duration = 2000,
 			  blink_duration = 200):
@@ -157,7 +157,7 @@ class SpiderProjectile(pygame.sprite.Sprite):
 				setattr(player, 'is_hit', True)
 				player.hit_timer = pygame.time.get_ticks()
 				setattr(player, 'health', getattr(player, 'health', 100) - self.damage)
-				setattr(player, 'lives', max(0, getattr(player, 'lives', 3) - 1))
+				setattr(player, 'lives', max(0, getattr(player, 'lives', 4) - 1))
 		except Exception as e:
 			print(f"Error applying damage to player: {e}")
 
@@ -192,9 +192,39 @@ class Egg(pygame.sprite.Sprite):
 
 	def hatch(self):
 		self.kill()
-		print("El huevo ha eclosionado.")
 
 	def spawn_npc(self, world):
-		enemy_types = ["Cazadora"]
-		enemy_type = random.choice(enemy_types)
+		# Inicializar contadores en el mundo si no existen (asegurar persistencia entre eclosiones)
+		if world is None:
+			# Si no hay mundo, caemos a elección aleatoria por compatibilidad
+			enemy_types = ["Tejedora", "Cazadora"]
+			enemy_type = random.choice(enemy_types)
+		else:
+			# Crear estructura de conteo y objetivos por tipo si no existen aún
+			if not hasattr(world, 'spawned_enemy_counts'):
+				# Contador de enemigos generados por tipo
+				world.spawned_enemy_counts = {'Tejedora': 0, 'Cazadora': 0}
+				# Objetivo por tipo (dos de cada uno)
+				world._enemy_spawn_target = {'Tejedora': 2, 'Cazadora': 2}
+
+			# Obtener cuántos faltan por generar de cada tipo según el objetivo
+			faltan_tej = max(0, world._enemy_spawn_target.get('Tejedora', 2) - world.spawned_enemy_counts.get('Tejedora', 0))
+			faltan_caz = max(0, world._enemy_spawn_target.get('Cazadora', 2) - world.spawned_enemy_counts.get('Cazadora', 0))
+
+			# Si ambos objetivos ya se cumplieron, elegir aleatoriamente entre los tipos
+			if faltan_tej == 0 and faltan_caz == 0:
+				enemy_type = random.choice(list(world.spawned_enemy_counts.keys()))
+			else:
+				# Elegir aleatoriamente pero ponderado por cuántos faltan (priorizar completar los dos de cada tipo)
+				total_faltan = faltan_tej + faltan_caz
+				# Selección por rango para evitar flotantes
+				seleccion = random.randint(1, total_faltan)
+				if seleccion <= faltan_tej:
+					enemy_type = 'Tejedora'
+				else:
+					enemy_type = 'Cazadora'
+
+			# Actualizar contador en el mundo para el tipo seleccionado
+			world.spawned_enemy_counts.setdefault(enemy_type, 0)
+			world.spawned_enemy_counts[enemy_type] += 1
 		world.spawn_enemy(enemy_type, self.rect.centerx, self.rect.centery)

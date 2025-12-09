@@ -80,13 +80,16 @@ class Game:
         Dibuja las vidas del jugador en la pantalla.
         """
         lives = [
-            pygame.image.load(str(BASE_DIR / "assets" / "health" / "3-hearts.png")).convert_alpha(), # 3 vidas
-            pygame.image.load(str(BASE_DIR / "assets" / "health" / "2-hearts.png")).convert_alpha(), # 2 vidas
-            pygame.image.load(str(BASE_DIR / "assets" / "health" / "1-heart.png")).convert_alpha(),  # 1 vida
-            pygame.image.load(str(BASE_DIR / "assets" / "health" / "0-heart.png")).convert_alpha(), # 0 vidas
+            pygame.image.load(str(BASE_DIR / "assets" / "health" / "100-health.png")).convert_alpha(), # 100% de salud
+            pygame.image.load(str(BASE_DIR / "assets" / "health" / "75-health.png")).convert_alpha(), # 75% de salud
+            pygame.image.load(str(BASE_DIR / "assets" / "health" / "50-health.png")).convert_alpha(),  # 50% de salud
+            pygame.image.load(str(BASE_DIR / "assets" / "health" / "25-health.png")).convert_alpha(), # 25% de salud
+            pygame.image.load(str(BASE_DIR / "assets" / "health" / "0-health.png")).convert_alpha(), # 0% de salud
         ]
-        life_index = max(0, min(3, 3 - self.player.lives))  # Asegura que el índice esté entre 0 y 3
+        life_index = max(0, min(4, 4 - self.player.lives))  # Asegura que el índice esté entre 0 y 4
         life_image = lives[life_index]
+        # reescala la imagen si es necesario
+        life_image = pygame.transform.scale(life_image, (114, 36))
         self.screen.blit(life_image, (self.screen.get_width() - life_image.get_width() - 10, 10))  # Dibuja en la esquina superior derecha con un margen de 10 píxeles
 
     def show_loading_screen(self, message):
@@ -156,7 +159,6 @@ class Game:
         for enemy in self.enemies:
             if enemy.name in ["Cazadora", "Criadora"]:
                 enemy.recive_alert(player_node_id, player_health)
-                print(f"{enemy.name} ha sido alertado de la presencia del jugador en el nodo {player_node_id} con salud {player_health}.")
     
     def _handle_collisions(self):
         for pot in self.honey_pots.sprites():
@@ -167,13 +169,11 @@ class Game:
                         if web.has_pot and web.rect.colliderect(pot.rect):
                             web.has_pot = False
                             break
-                print(f"Miel recolectada! Total: {self.player.honey_collected}")
                 pot.kill()
         
         for power_up in self.power_ups.sprites():
             if self.player.rect.colliderect(power_up.rect):
                 self.player.activate_power_up(power_up.duration)
-                print("¡Poder recogido!")
                 power_up.kill()
 
         enemies_to_remove = []
@@ -185,9 +185,7 @@ class Game:
                 if projectile.rect.colliderect(enemy.rect) and not enemy.is_hit:
                     # Elimina el proyectil del grupo.
                     projectile.kill()
-                    print("¡Enemigo alcanzado!")
                     if enemy.take_damage(projectile.damage):
-                        print(f"{enemy.name} ha sido derrotado.")
                         enemies_to_remove.append(enemy)
                     # Rompe el bucle interno, ya que el proyectil ya impactó.
                     break
@@ -221,8 +219,56 @@ class Game:
         counter_surface = font.render(counter_text, True, (0, 0, 0))  # Texto en negro
         counter_rect = counter_surface.get_rect(topleft=(title_rect.right + 10, title_rect.top))
         self.screen.blit(counter_surface, counter_rect)
-    
+    def show_start_screen(self):
+        running = True
+        font_title = pygame.font.SysFont('Arial', 60, bold=True)
+        font_button = pygame.font.SysFont('Arial', 36)
+        bg_color = (30, 30, 60)
+        button_color = (80, 180, 80)
+        button_hover = (120, 220, 120)
+        exit_color = (180, 80, 80)
+        exit_hover = (220, 120, 120)
+
+        # Botón Play
+        play_rect = pygame.Rect(self.screen.get_width()//2 - 100, 320, 200, 60)
+        exit_rect = pygame.Rect(self.screen.get_width()//2 - 100, 400, 200, 60)
+
+        while running:
+            self.screen.fill(bg_color)
+            # Fondo opcional: puedes cargar una imagen aquí si lo prefieres
+
+            # Título
+            title_surf = font_title.render("Bee-Collector", True, (255, 255, 0))
+            title_rect = title_surf.get_rect(center=(self.screen.get_width()//2, 180))
+            self.screen.blit(title_surf, title_rect)
+
+            # Botón Play
+            mouse_pos = pygame.mouse.get_pos()
+            play_col = button_hover if play_rect.collidepoint(mouse_pos) else button_color
+            pygame.draw.rect(self.screen, play_col, play_rect, border_radius=12)
+            play_text = font_button.render("Jugar", True, (0, 0, 0))
+            self.screen.blit(play_text, play_text.get_rect(center=play_rect.center))
+
+            # Botón Exit
+            exit_col = exit_hover if exit_rect.collidepoint(mouse_pos) else exit_color
+            pygame.draw.rect(self.screen, exit_col, exit_rect, border_radius=12)
+            exit_text = font_button.render("Salir", True, (0, 0, 0))
+            self.screen.blit(exit_text, exit_text.get_rect(center=exit_rect.center))
+
+            pygame.display.flip()
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    exit()
+                elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    if play_rect.collidepoint(event.pos):
+                        return  # Sale de la función y empieza el juego
+                    elif exit_rect.collidepoint(event.pos):
+                        pygame.quit()
+                        exit()
     def run(self, npc_type="No role"):
+        self.show_start_screen()
         self.spawn_enemy(npc_type, 50, 100)
         
         running = True
@@ -327,9 +373,9 @@ class Game:
                 show_debug = show_nav_mesh
             )
 
-            if self.player.health <= 0:
+            """ if self.player.health <= 0:
                 self.show_game_over_screen()
-                running = False
+                running = False """
 
             if show_nav_mesh and self.nav_mesh:
                 active_nodes = []

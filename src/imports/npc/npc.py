@@ -140,7 +140,6 @@ class NPC:
 			self.health -= amount
 			self.is_hit = True
 			self.hit_timer = pygame.time.get_ticks()
-			print(f"{self.name} fue golpeado y recibió {amount} de daño. Vida restante: {self.health}")
 			return self.health <= 0
 		return False
 	

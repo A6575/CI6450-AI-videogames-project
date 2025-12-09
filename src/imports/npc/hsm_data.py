@@ -454,13 +454,17 @@ def build_cazadora_hsm(context: Context) -> HSM:
 				'time_to_target': 0.1
 			},
 			'condition_checks': {
+				'blackboard_priority': 'recibe_dano',
 				'player_near_with_honey': "encontro_jugador_con_tarro",
 				'player_near_no_honey': "encontro_jugador_sin_tarro",
 				'received_damage': "recibe_dano",
+				'critical_damage': 'recibe_dano_critico'
 			},
 			'condition_params':{
 				'radius': 8.0,
 				'critical_threshold': 25,
+				'min_priority': 25,
+				'quality': 'player_health'
 			}
 		}
 	)
@@ -578,11 +582,17 @@ def build_criadora_hsm(context: Context) -> HSM:
 		on_enter=hsm_actions.action_enter_search_safe_zone,
 		on_exit=hsm_actions.action_exit_search_safe_zone,
 		on_update=hsm_actions.action_update_search_safe_zone,
-		transitions={'encuentra_zona': 'CRIAR'},
+		transitions={
+			'encuentra_zona': 'CRIAR',
+			'recibe_dano': 'HUIR',
+			'enemigo_en_zona': 'HUIR'
+		},
 		params={
 			'explicit_target': Player("Target", 0,0,0),
 			'condition_checks': {
-				'found_safe_zone': 'encuentra_zona'
+				'found_safe_zone': 'encuentra_zona',
+				'player_near': 'enemigo_en_zona',
+				'received_damage': 'recibe_dano'
 			}
 		}
 	)
